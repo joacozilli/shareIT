@@ -1,0 +1,82 @@
+#include "array.h"
+#include "utils.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+
+
+Array array_create(unsigned int capacity, functionCopy copy, functionDelete del, functionPrint print) {
+    if (capacity <= 0 || !copy || !del) {
+
+        return NULL;
+    }
+    Array arr = malloc(sizeof(struct _Array));
+    if (!arr) {
+        eprintf("NULL return by malloc in %s\n", __func__);
+        return NULL;
+    }
+
+    arr->size = 0;
+    arr->capacity = capacity;
+    arr->copy = copy;
+    arr->del = del;
+    arr->print = print;
+    arr->elems = malloc(sizeof(void*) * capacity);
+    for (unsigned int i = 0; i < capacity; i++)
+        arr->elems[i] = NULL;
+    
+    return arr;
+}
+
+void array_add(Array arr, void* value) {
+    if (!arr) {
+        eprintf("array given is NULL in %s\n", __func__);
+        return;
+    }
+    if (!value) {
+        eprintf("value given is NULL in %s\n", __func__);
+        return;
+    }
+    arr->size++;
+    if (arr->size > arr->capacity) {
+        int inc = arr->capacity*2 < MAX_INCREMENT ? arr->capacity*2 : MAX_INCREMENT;
+        int newCapacity = arr->capacity + inc;
+        arr->elems = realloc(arr->elems, sizeof(void*) * newCapacity);
+        arr->capacity = newCapacity;
+    }
+    arr->elems[arr->size-1] = arr->copy(value);
+}
+
+unsigned int array_size(Array arr) {
+    if (!arr) {
+        eprintf("array given is NULL in %s\n", __func__);
+        return -1;
+    }
+    return arr->size;
+}
+
+void array_destroy(Array arr) {
+    if (!arr) {
+        eprintf("array given is NULL in %s\n", __func__);
+        return;
+    }
+
+    for (unsigned int i = 0; i < arr->size; i++) 
+        arr->del(arr->elems[i]);
+    
+    free(arr->elems);
+    free(arr);
+}
+
+
+void array_print(Array arr) {
+    if (!arr) {
+        eprintf("array given is NULL in %s\n", __func__);
+        return;
+    }
+    if(!arr->print)
+        return;
+
+    for (unsigned int i = 0; i < arr->size; i++)
+        arr->print(arr->elems[i]);
+}
