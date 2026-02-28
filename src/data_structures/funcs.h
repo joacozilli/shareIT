@@ -28,6 +28,11 @@ typedef void (*functionDelete)(void* value);
 typedef void (*functionPrint)(void* value);
 
 /**
+ * Must return value of the same type.
+ */
+typedef void* (*functionMap)(void* value);
+
+/**
  * Must return a hash value for value.
  */
 typedef unsigned long (*funcionHash)(void* value);

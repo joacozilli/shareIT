@@ -38,6 +38,12 @@ AVL avl_create(functionCopy copy, functionCompareOrd cmp, functionDelete del, fu
 void avl_insert(AVL tree, void* value);
 
 /**
+ * Apply f to all values in avl tree. It is assumed f doesn't alter current order of values.
+ * That is, for all a,b,c in the tree, if a < b < c then f(a) < f(b) < (c)
+ */
+void avl_map(AVL tree, functionMap f);
+
+/**
  * Delete value from avl tree.
  */
 void avl_delete(AVL tree, void* value);

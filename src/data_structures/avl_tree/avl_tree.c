@@ -182,3 +182,26 @@ void avl_print(AVL tree) {
     print_aux(tree->root, tree->print);
 
 }
+
+AVLNode map_aux(AVLNode T, functionMap f) {
+    if (T == NULL)
+        return NULL;
+    
+    T->left = map_aux(T->left, f);
+    T->right = map_aux(T->right, f);
+
+    void* temp = T->value;
+    T->value = f(T->value);
+    free(temp);
+    return T;
+}
+
+
+void avl_map(AVL tree, functionMap f) {
+    if (!tree) {
+        eprintf("avl tree given is NULL in %s\n", __func__);
+        return;
+    }
+
+    tree->root = map_aux(tree->root, f);
+}
