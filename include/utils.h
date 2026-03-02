@@ -8,7 +8,7 @@
 // macro for printing errors on stderr
 #define eprintf(fmt,...) fprintf (stderr, fmt, __VA_ARGS__)
 
-// macro for printing errors on stderr using errno
+// macro for printing errors on stderr using errno. Thread safe.
 #define errnoprintf(fmt, ...) { \
     int _err = errno; \
     char _errbuf[256]; \
