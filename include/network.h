@@ -1,6 +1,7 @@
 #ifndef __NETWORK_H__
 #define __NETWORK_H__
 
+#include <stddef.h>
 
 /**
  * Create new tcp socket listening on the specified port and ip. if ip is NULL, bind

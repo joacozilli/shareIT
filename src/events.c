@@ -1,5 +1,9 @@
 #include "events.h"
+#include "utils.h"
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -73,7 +77,7 @@ int accept_client_connection(int epfd, int srvSock) {
     return 0;
 }
 
-void wait_epoll_events(int epfd, connection_status (*handler)(int clientFd)) {
+int wait_epoll_events(int epfd, connection_status (*handler)(int clientFd)) {
     struct epoll_event eventsQueue[EPOLL_WAIT_MAX_EVENTS];
     int eventsReady = epoll_wait(epfd, eventsQueue, EPOLL_WAIT_MAX_EVENTS, -1);
     if (eventsReady < 0)
@@ -119,4 +123,6 @@ void wait_epoll_events(int epfd, connection_status (*handler)(int clientFd)) {
         close(socket->fd);
         free(socket);
     }
+
+    return 0;
 }

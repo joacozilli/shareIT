@@ -57,6 +57,6 @@ int accept_client_connection(int epfd, int srvSock);
  * wait for epoll events. If the ready file descriptor is the server, a new connection is accepted;
  * if it is a client, it is passed to the handler function to handle its request.
  */
-void wait_epoll_events(int epfd, connection_status (*handler)(int clientFd));
+int wait_epoll_events(int epfd, connection_status (*handler)(int clientFd));
 
 #endif /* __EVENTS_H__ */

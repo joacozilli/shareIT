@@ -10,7 +10,6 @@
 
 // macro for printing errors on stderr using errno. Thread safe.
 #define errnoprintf(fmt, ...) { \
-    int _err = errno; \
     char _errbuf[256]; \
     safe_strerror(_errbuf, sizeof _errbuf); \
     eprintf(fmt, ##__VA_ARGS__); \

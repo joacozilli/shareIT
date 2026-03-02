@@ -101,7 +101,8 @@ int create_tcp_client_socket(int port, const char* ip) {
         errnoprintf("connect in %s", __func__);
         return -1;
     }
-
+    
+    return fd;
 }
 
 
@@ -163,7 +164,7 @@ int send_tcp_message(int fd, const void* msg, size_t size) {
         return -1;
     }
 
-    int total = 0;
+    size_t total = 0;
     while (total < size) {
         // msg_donwait so it doesn't block
         int nbytes = send(fd, msg+total, size-total, MSG_DONTWAIT);
@@ -194,7 +195,7 @@ int send_udp_mesage(int fd, const void* msg, size_t size, int port, const char* 
         errnoprintf("sendto in %s", __func__);
         return -1;
     }
-    
+
     return 0;
 }
 
