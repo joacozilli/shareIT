@@ -158,20 +158,43 @@ int create_broadcast_udp_socket(int port, const char *ip) {
 
 
 int send_tcp_message(int fd, const void* msg, size_t size) {
+    if (fd < 0) {
+        eprintf("file descriptor argument is negative in %s\n", __func__);
+        return -1;
+    }
+
     int total = 0;
     while (total < size) {
-        // blocks if receiver isn't reading (must fix!!!)
-        int nbytes = send(fd, msg+total, size-total, 0);
+        // msg_donwait so it doesn't block
+        int nbytes = send(fd, msg+total, size-total, MSG_DONTWAIT);
         if (nbytes < 0) {
             errnoprintf("send in %s", __func__);
             return -1;
         }
-        if (nbytes == 0) {
-            // receiver closed connection gracefully.
-        }
+        if(nbytes == 0)
+            break;
         total += nbytes;
     }
     return 0;
 }
 
+
+int send_udp_mesage(int fd, const void* msg, size_t size, int port, const char* ip) {
+    if (fd < 0) {
+        eprintf("file descriptor argument is negative in %s\n", __func__);
+        return -1;
+    }
+
+    struct sockaddr_in dest;
+    dest.sin_family = AF_INET;
+    dest.sin_port = htons(port);
+    inet_pton(AF_INET, ip, &dest.sin_addr);
+
+    if (sendto(fd, msg, size, 0, (struct sockaddr*) &dest, sizeof dest) < 0) {
+        errnoprintf("sendto in %s", __func__);
+        return -1;
+    }
+    
+    return 0;
+}
 
