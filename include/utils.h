@@ -7,7 +7,7 @@
 #include <pthread.h>
 
 // mutex for printing error messages
-pthread_mutex_t eprintf_mutex = PTHREAD_MUTEX_INITIALIZER;
+extern pthread_mutex_t eprintf_mutex;
 
 // macro for printing errors on stderr. Thread safe.
 #define eprintf(fmt,...) { \

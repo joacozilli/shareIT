@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdio.h>
 
+pthread_mutex_t eprintf_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 int safe_strerror(char* errbuff, size_t bufflen) {
     #if defined(__GLIBC__) && defined(_GNU_SOURCE)
         /* GNU-specific */
