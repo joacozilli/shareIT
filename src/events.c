@@ -27,7 +27,7 @@ int create_srv_epoll(int srvSock) {
         return -1;
     }
 
-    SocketInfo server = malloc(sizeof(struct _SocketInfo));
+    fd_info server = malloc(sizeof(struct _fd_info));
     server->fd = srvSock;
     server->type = SOCKET_TCP_LISTENER;
     struct epoll_event srvEvent;
@@ -61,7 +61,7 @@ int accept_client_connection(int epfd, int srvSock) {
         return -1;
     }
 
-    SocketInfo sockInf = malloc(sizeof(struct _SocketInfo));
+    fd_info sockInf = malloc(sizeof(struct _fd_info));
     sockInf->fd = clientfd;
     sockInf->type = SOCKET_TCP_CLIENT;
     struct epoll_event event;
@@ -87,7 +87,7 @@ int wait_epoll_events(int epfd, connection_status (*handler)(int clientFd)) {
     }
     for (int i = 0; i < eventsReady; i++)
     {
-        SocketInfo socket = eventsQueue[i].data.ptr;
+        fd_info socket = eventsQueue[i].data.ptr;
 
         if (socket->type == SOCKET_TCP_LISTENER)
         {

@@ -4,9 +4,17 @@
 #include <stddef.h>
 #include <errno.h>
 #include <stdio.h>
+#include <pthread.h>
 
-// macro for printing errors on stderr
-#define eprintf(fmt,...) fprintf (stderr, fmt, __VA_ARGS__)
+// mutex for printing error messages
+pthread_mutex_t eprintf_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+// macro for printing errors on stderr. Thread safe.
+#define eprintf(fmt,...) { \
+    pthread_mutex_lock(&eprintf_mutex); \
+    fprintf (stderr, fmt, __VA_ARGS__); \
+    pthread_mutex_unlock(&eprintf_mutex); \
+}
 
 // macro for printing errors on stderr using errno. Thread safe.
 #define errnoprintf(fmt, ...) { \

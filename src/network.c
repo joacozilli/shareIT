@@ -11,6 +11,7 @@
 #include <string.h> /* memset */
 
 
+
 int create_tcp_listener_socket(int port, const char *ip, unsigned int connectionLimit) {
     if (connectionLimit < 1) {
         eprintf("%s: connection limit %d is non-positive\n", __func__, connectionLimit);
@@ -50,7 +51,7 @@ int create_tcp_listener_socket(int port, const char *ip, unsigned int connection
             close(fd);
             if (ret == 0)
                 eprintf("inet_pton in %s: invalid ip %s\n", __func__, ip);
-            else if (ret == -1)
+            if (ret == -1)
                 errnoprintf("inet_pton in %s", __func__);
             return -1;
         }
@@ -91,7 +92,7 @@ int create_tcp_client_socket(int port, const char* ip) {
         close(fd);
         if (ret == 0)
             eprintf("inet_pton in %s: invalid ip %s\n", __func__, ip);
-        else if (ret == -1)
+        if (ret == -1)
             errnoprintf("inet_pton in %s", __func__);
         return -1;
     }
@@ -128,8 +129,9 @@ int create_broadcast_udp_socket(int port, const char *ip) {
         int ret = inet_pton(AF_INET, ip, &sa.sin_addr);
         if (ret != 1) {
             close(fd);
-            if (ret == 0)
+            if (ret == 0) {
                 eprintf("inet_pton in %s: invalid ip %s\n", __func__, ip);
+            }
             else if (ret == -1)
                 errnoprintf("inet_pton in %s", __func__);
             return -1;
@@ -166,7 +168,7 @@ int send_tcp_message(int fd, const void* msg, size_t size) {
 
     size_t total = 0;
     while (total < size) {
-        // msg_donwait so it doesn't block
+        // msg_dontwait so it doesn't block
         int nbytes = send(fd, msg+total, size-total, MSG_DONTWAIT);
         if (nbytes < 0) {
             errnoprintf("send in %s", __func__);
@@ -176,7 +178,28 @@ int send_tcp_message(int fd, const void* msg, size_t size) {
             break;
         total += nbytes;
     }
-    return 0;
+    return total;
+}
+
+
+int recv_tcp_message(int fd, void* buffer, size_t len) {
+    if (fd < 0) {
+        eprintf("file descriptor argument is negative in %s\n", __func__);
+        return -1;
+    }
+
+    size_t total = 0;
+    while (total < len) {
+        int nbytes = recv(fd, buffer+total, len - total, 0);
+        if (nbytes < 0) {
+            errnoprintf("recv in %s", __func__);
+            return -1;
+        }
+        if (nbytes == 0) // peer closed connection orderly
+            break;
+        total += nbytes;
+    }
+    return total;
 }
 
 
@@ -199,3 +222,16 @@ int send_udp_mesage(int fd, const void* msg, size_t size, int port, const char* 
     return 0;
 }
 
+int recv_udp_message(int fd, void* buffer, size_t len) {
+    if (fd < 0) {
+        eprintf("file descriptor argument is negative in %s\n", __func__);
+        return -1;
+    }
+
+    int nbytes = recvfrom(fd, buffer, len, MSG_TRUNC, NULL, NULL);
+    if (nbytes < 0) {
+        errnoprintf("recvfrom in %s", __func__);
+        return -1;
+    }
+    return nbytes;
+}
