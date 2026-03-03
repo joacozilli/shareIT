@@ -10,7 +10,6 @@
 
 
 
-
 int create_srv_epoll(int srvSock) {
     /**
      * the listening socket (server socket) must be added with EPOLLIN event (a file descriptor
@@ -21,21 +20,19 @@ int create_srv_epoll(int srvSock) {
      */
 
     int epfd = epoll_create1(0);
-    if (epfd < 0)
-    {
+    if (epfd < 0) {
         errnoprintf("epoll_create1 in %s", __func__);
         return -1;
     }
 
     fd_info server = malloc(sizeof(struct _fd_info));
-    server->fd = srvSock;
+    server->integer = srvSock;
     server->type = SOCKET_TCP_LISTENER;
     struct epoll_event srvEvent;
     srvEvent.data.ptr = server;
     srvEvent.events = EPOLLIN | EPOLLONESHOT; // prevents several threads accept the same connection
 
-    if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvSock, &srvEvent) < 0)
-    {
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvSock, &srvEvent) < 0) {
         close(epfd);
         errnoprintf("epoll_ctl in %s", __func__);
         return -1;
@@ -62,7 +59,7 @@ int accept_client_connection(int epfd, int srvSock) {
     }
 
     fd_info sockInf = malloc(sizeof(struct _fd_info));
-    sockInf->fd = clientfd;
+    sockInf->integer = clientfd;
     sockInf->type = SOCKET_TCP_CLIENT;
     struct epoll_event event;
     event.events = EPOLLIN | EPOLLONESHOT;
@@ -77,51 +74,56 @@ int accept_client_connection(int epfd, int srvSock) {
     return 0;
 }
 
-int wait_epoll_events(int epfd, connection_status (*handler)(int clientFd)) {
+int wait_epoll_events(int epfd, handler_status_t (*client_handler)(fd_info fd)) {
     struct epoll_event eventsQueue[EPOLL_WAIT_MAX_EVENTS];
     int eventsReady = epoll_wait(epfd, eventsQueue, EPOLL_WAIT_MAX_EVENTS, -1);
-    if (eventsReady < 0)
-    {
+    if (eventsReady < 0) {
         errnoprintf("epoll_wait in %s", __func__);
         return -1;
     }
-    for (int i = 0; i < eventsReady; i++)
-    {
-        fd_info socket = eventsQueue[i].data.ptr;
+    for (int i = 0; i < eventsReady; i++) {
+        fd_info fd = eventsQueue[i].data.ptr;
 
-        if (socket->type == SOCKET_TCP_LISTENER)
-        {
-            accept_client_connection(epfd, socket->type);
+        if (fd->type == SOCKET_TCP_LISTENER) {
+            if (accept_client_connection(epfd, fd->integer) < 0)
+                eprintf("unable to accept client connection in %s", __func__);
             struct epoll_event srvEvent;
-            srvEvent.data.ptr = socket;
+            srvEvent.data.ptr = fd;
             srvEvent.events = EPOLLIN | EPOLLONESHOT;
-            epoll_ctl(epfd, EPOLL_CTL_MOD, socket->fd, &srvEvent);
+            epoll_ctl(epfd, EPOLL_CTL_MOD, fd->integer, &srvEvent);
             continue;
         }
 
-        /**
-         * handle client and rearm to epoll.
-         */
-        connection_status status = handler(socket->fd);
+        handler_status_t status = client_handler(fd);
 
-        if (status == CONTINUE)
-        {
+        if (status == CLIENT_CONTINUE_CONNECTION) {
             struct epoll_event cliEvent;
-            cliEvent.data.ptr = socket;
+            cliEvent.data.ptr = fd;
             cliEvent.events = EPOLLIN | EPOLLONESHOT;
 
             /* if unable to add again to epoll, close connection (very rare though) */
-            if (epoll_ctl(epfd, EPOLL_CTL_MOD, socket->fd, &cliEvent) < 0)
-            {
-                close(socket->fd);
-                free(socket);
+            if (epoll_ctl(epfd, EPOLL_CTL_MOD, fd->integer, &cliEvent) < 0) {
+                close(fd->integer);
+                free(fd);
                 errnoprintf("epoll_ctl in %s", __func__);
             }
         }
-        else if (status == CLOSE)
-            epoll_ctl(epfd, EPOLL_CTL_DEL, socket->fd, NULL);
-        close(socket->fd);
-        free(socket);
+        else if (status == CLIENT_CLOSE_CONNECTION) {
+            epoll_ctl(epfd, EPOLL_CTL_DEL, fd->integer, NULL);
+            close(fd->integer);
+            free(fd);
+        }      
+        else if (status == TIMEOUT_DONE) {
+            struct epoll_event timeoutEvent;
+            timeoutEvent.data.ptr = fd;
+            timeoutEvent.events = EPOLLIN | EPOLLONESHOT;
+            epoll_ctl(epfd, EPOLL_CTL_MOD, fd->integer, &timeoutEvent);
+        }
+        else if (status == ERROR) {
+            epoll_ctl(epfd, EPOLL_CTL_DEL, fd->integer, NULL);
+            close(fd->integer);
+            free(fd);
+        }
     }
 
     return 0;

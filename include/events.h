@@ -3,19 +3,24 @@
 
 
 
-#define EPOLL_WAIT_MAX_EVENTS 1000 // max events returned by epoll_wait
-#define RECV_TIMEOUT_SEC 3 // timeout for calling recv over a client socket (in seconds).
+#define EPOLL_WAIT_MAX_EVENTS 1000  // max events returned by epoll_wait
+#define RECV_TIMEOUT_SEC 3          // timeout for calling recv over a client socket (in seconds).
+#define SEND_HELLO_TIMEOUT_SEC 2    // timeout for broadcasting hello message
+#define CLEANUP_TIMEOUT_SEC 2       // timeout for removing tolerance of all peers
+
+#define MAX_TOLERANCE 3
 
 
-/**
- * describes if a client closes connection or continues after handling its request.
- */
+/* Type returned by handler function passed to wait_epoll_events. Describes what has the handler done
+and what should be done with the file descriptor after handling the event. */
 typedef enum {
-    CONTINUE,
-    CLOSE
-} connection_status;
+    CLIENT_CONTINUE_CONNECTION, // the event was from a client and it will continue the connection
+    CLIENT_CLOSE_CONNECTION,    // the event was from a client and it closed connection
+    TIMEOUT_DONE,               // the event was a timeout
+    ERROR                       // critical error when handling event, close and remove file descriptor
+} handler_status_t;
 
-/* describes what type is a file descriptor */
+/* describes what type is a file descriptor. */
 typedef enum {
     SOCKET_TCP_LISTENER, 
     SOCKET_TCP_CLIENT,
@@ -26,7 +31,7 @@ typedef enum {
 
 
 struct _fd_info {
-    int fd;
+    int integer;
     fd_type type
 };
 typedef struct _fd_info* fd_info;
@@ -45,8 +50,8 @@ int accept_client_connection(int epfd, int srvSock);
 
 /**
  * wait for epoll events. If the ready file descriptor is the server, a new connection is accepted;
- * if it is a client, it is passed to the handler function to handle its request.
+ * otherwise, it is passed to the handler function.
  */
-int wait_epoll_events(int epfd, connection_status (*handler)(int clientFd));
+int wait_epoll_events(int epfd, handler_status_t (*handler)(fd_info fd));
 
 #endif /* __EVENTS_H__ */
