@@ -25,9 +25,9 @@ Each node must:
 
 
 # descovering mechanism
-When a node is executed, it starts to perodically send a HELLO message to local broadcast with its name and ip and port where it is
-awaiting requests. To allow the execution of several nodes in the same machine, a unique identifier will be the pair (ip, port).
-
+When node is executed, generates id and sends broadcast name_request. If inside the next 5 seconds an invalid name is received,
+repeat. Otherwise, node starts. It must perodically send a HELLO message to local broadcast with its name and ip and port
+where it is awaiting requests.
 
 Simultaneously, when the node receives a hello message from other node, it confirms that such node still exists or adds it to its
 set of known nodes if it is a new one (saving port and ip).
@@ -35,7 +35,6 @@ set of known nodes if it is a new one (saving port and ip).
 The node offers a set of files, which other nodes can see and request downloads. They must be handled concurrently.
 At the same time, it can see known-nodes's set of files and request downloads to them.
 Also, the node can send a file to all known nodes, and all this nodes must receive it.
-
 
 Let N = {n_1,...,n_k} be the set of known nodes by node x. Hello messages are sent every 2 seconds (for example). If x hasn't
 received a hello message from n_i in the last 6 seconds (3 hello's tolerance), x forgets about it. To achieve this:
@@ -48,7 +47,6 @@ Suppose we store N in an avl tree
 - linear mapping (add 1 to all counters) and iteration
 - counter reset/add new node in lg(n)
 - forget node (delete from avl) in lg(n)
-
 
 download request:
     - x wants to download file F from n_i
