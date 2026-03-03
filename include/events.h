@@ -32,15 +32,15 @@ typedef enum {
 
 struct _fd_info {
     int integer;
-    fd_type type
+    fd_type type;
 };
 typedef struct _fd_info* fd_info;
 
 /**
- * create epoll instance and add the server socket to it. Return the epoll file descriptor
- * on success, otherwise return -1 and inform error.
+ * create epoll instance and add the server tcp socket and udp socket to it. Return the epoll
+ * file descriptor on success, otherwise return -1 and inform error.
  */
-int create_srv_epoll(int srvSock);
+int create_srv_epoll(int srvSock, int udpSock);
 
 /**
  * accept the new connection and add the client to the epoll instance. Return 0 on success,
@@ -53,5 +53,17 @@ int accept_client_connection(int epfd, int srvSock);
  * otherwise, it is passed to the handler function.
  */
 int wait_epoll_events(int epfd, handler_status_t (*handler)(fd_info fd));
+
+/**
+ * Create file descriptor for hello timeout with timerfd_create and add it to the epoll instance.
+ * Return 0 on success, otherwise -1 and inform error.
+ */
+int create_hello_timeout(int epfd);
+
+/**
+ * Create file descriptor for cleanup timeout with timerfd_create and add it to the epoll instance.
+ * Return 0 on success, otherwise -1 and inform error.
+ */
+int create_cleanup_timeout(int epfd);
 
 #endif /* __EVENTS_H__ */

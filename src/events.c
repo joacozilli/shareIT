@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 199309L
 #include "events.h"
 #include "utils.h"
 
@@ -7,10 +8,11 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#include <sys/timerfd.h>
 
 
 
-int create_srv_epoll(int srvSock) {
+int create_srv_epoll(int srvSock, int udpSock) {
     /**
      * the listening socket (server socket) must be added with EPOLLIN event (a file descriptor
      * with EPOLLIN event means epoll_wait will notify when it is ready for read operations).
@@ -33,6 +35,19 @@ int create_srv_epoll(int srvSock) {
     srvEvent.events = EPOLLIN | EPOLLONESHOT; // prevents several threads accept the same connection
 
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvSock, &srvEvent) < 0) {
+        close(epfd);
+        errnoprintf("epoll_ctl in %s", __func__);
+        return -1;
+    }
+
+    fd_info udp = malloc(sizeof(struct _fd_info));
+    udp->integer = udpSock;
+    udp->type = SOCKET_UDP;
+    struct epoll_event udpEvent;
+    udpEvent.data.ptr = udp;
+    udpEvent.events = EPOLLIN | EPOLLONESHOT;
+
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, udpSock, &udpEvent) < 0) {
         close(epfd);
         errnoprintf("epoll_ctl in %s", __func__);
         return -1;
@@ -74,7 +89,7 @@ int accept_client_connection(int epfd, int srvSock) {
     return 0;
 }
 
-int wait_epoll_events(int epfd, handler_status_t (*client_handler)(fd_info fd)) {
+int wait_epoll_events(int epfd, handler_status_t (*handler)(fd_info fd)) {
     struct epoll_event eventsQueue[EPOLL_WAIT_MAX_EVENTS];
     int eventsReady = epoll_wait(epfd, eventsQueue, EPOLL_WAIT_MAX_EVENTS, -1);
     if (eventsReady < 0) {
@@ -94,7 +109,7 @@ int wait_epoll_events(int epfd, handler_status_t (*client_handler)(fd_info fd)) 
             continue;
         }
 
-        handler_status_t status = client_handler(fd);
+        handler_status_t status = handler(fd);
 
         if (status == CLIENT_CONTINUE_CONNECTION) {
             struct epoll_event cliEvent;
@@ -124,6 +139,49 @@ int wait_epoll_events(int epfd, handler_status_t (*client_handler)(fd_info fd)) 
             close(fd->integer);
             free(fd);
         }
+    }
+
+    return 0;
+}
+
+
+int create_hello_timeout(int epfd) {
+    if (epfd < 0) {
+        eprintf("epoll file descriptor given is negative in %s", __func__);
+        return -1;
+    }
+
+    int hellofd = timerfd_create(CLOCK_MONOTONIC, 0);
+    if (hellofd < 0) {
+        errnoprintf("timerfd_create in %s", __func__);
+        return -1;
+    }
+
+    struct itimerspec tv;
+    tv.it_interval.tv_sec = 2;
+    tv.it_interval.tv_nsec = 0;
+    tv.it_value.tv_sec = 2;
+    tv.it_value.tv_nsec = 0;
+
+    if (timerfd_settime(hellofd, 0, &tv, NULL) < 0) {
+        errnoprintf("timerfd_settime %s", __func__);
+        close(hellofd);
+        return -1;
+    }
+
+    fd_info hello = malloc(sizeof (struct _fd_info));
+    hello->integer = hellofd;
+    hello->type = SEND_HELLO_TIMEOUT;
+
+    struct epoll_event helloEvent;
+    helloEvent.data.ptr = hello;
+    helloEvent.events = EPOLLIN | EPOLLONESHOT;
+
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, hellofd, &helloEvent) < 0) {
+        errnoprintf("epoll_ctl in %s", __func__);
+        close(hellofd);
+        free(hello);
+        return -1;
     }
 
     return 0;
