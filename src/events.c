@@ -158,9 +158,9 @@ int create_hello_timeout(int epfd) {
     }
 
     struct itimerspec tv;
-    tv.it_interval.tv_sec = 2;
+    tv.it_interval.tv_sec = SEND_HELLO_TIMEOUT_SEC;
     tv.it_interval.tv_nsec = 0;
-    tv.it_value.tv_sec = 2;
+    tv.it_value.tv_sec = SEND_HELLO_TIMEOUT_SEC;
     tv.it_value.tv_nsec = 0;
 
     if (timerfd_settime(hellofd, 0, &tv, NULL) < 0) {
@@ -181,6 +181,48 @@ int create_hello_timeout(int epfd) {
         errnoprintf("epoll_ctl in %s", __func__);
         close(hellofd);
         free(hello);
+        return -1;
+    }
+
+    return 0;
+}
+
+int create_cleanup_timeout(int epfd) {
+    if (epfd < 0) {
+        eprintf("epoll file descriptor given is negative in %s", __func__);
+        return -1;
+    }
+
+    int cleanupfd = timerfd_create(CLOCK_MONOTONIC, 0);
+    if (cleanupfd < 0) {
+        errnoprintf("timerfd_create in %s", __func__);
+        return -1;
+    }
+
+    struct itimerspec tv;
+    tv.it_interval.tv_sec = CLEANUP_TIMEOUT_SEC;
+    tv.it_interval.tv_nsec = 0;
+    tv.it_value.tv_sec = CLEANUP_TIMEOUT_SEC;
+    tv.it_value.tv_nsec = 0;
+
+    if (timerfd_settime(cleanupfd, 0, &tv, NULL) < 0) {
+        errnoprintf("timerfd_settime %s", __func__);
+        close(cleanupfd);
+        return -1;
+    }
+
+    fd_info cleanup = malloc(sizeof (struct _fd_info));
+    cleanup->integer = cleanupfd;
+    cleanup->type = CLEANUP_TIMEOUT;
+
+    struct epoll_event helloEvent;
+    helloEvent.data.ptr = cleanup;
+    helloEvent.events = EPOLLIN | EPOLLONESHOT;
+
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, cleanupfd, &helloEvent) < 0) {
+        errnoprintf("epoll_ctl in %s", __func__);
+        close(cleanupfd);
+        free(cleanup);
         return -1;
     }
 
