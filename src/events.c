@@ -89,7 +89,7 @@ int accept_client_connection(int epfd, int srvSock) {
     return 0;
 }
 
-int wait_epoll_events(int epfd, handler_status_t (*handler)(fd_info fd)) {
+int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler)(fd_info fd, server_info srv_info)) {
     struct epoll_event eventsQueue[EPOLL_WAIT_MAX_EVENTS];
     int eventsReady = epoll_wait(epfd, eventsQueue, EPOLL_WAIT_MAX_EVENTS, -1);
     if (eventsReady < 0) {
@@ -109,7 +109,7 @@ int wait_epoll_events(int epfd, handler_status_t (*handler)(fd_info fd)) {
             continue;
         }
 
-        handler_status_t status = handler(fd);
+        handler_status_t status = handler(fd, srv_info);
 
         if (status == CLIENT_CONTINUE_CONNECTION) {
             struct epoll_event cliEvent;

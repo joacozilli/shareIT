@@ -36,6 +36,19 @@ struct _fd_info {
 };
 typedef struct _fd_info* fd_info;
 
+struct _server_info {
+    char* srv_name;
+    int srv_socket;
+    int udp_socket;
+    char* srv_ip;
+    int srv_port;
+    char* broadcast_ip;
+    int broadcast_port;
+    char* hello_msg;
+};
+
+typedef struct _server_info* server_info;
+
 /**
  * create epoll instance and add the server tcp socket and udp socket to it. Return the epoll
  * file descriptor on success, otherwise return -1 and inform error.
@@ -52,7 +65,7 @@ int accept_client_connection(int epfd, int srvSock);
  * wait for epoll events. If the ready file descriptor is the server, a new connection is accepted;
  * otherwise, it is passed to the handler function.
  */
-int wait_epoll_events(int epfd, handler_status_t (*handler)(fd_info fd));
+int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler)(fd_info fd, server_info srv_info));
 
 /**
  * Create file descriptor for hello timeout with timerfd_create and add it to the epoll instance.

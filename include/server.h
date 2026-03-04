@@ -7,14 +7,17 @@
  * All messages sent via tcp start with a header of this length where the length of the actual
  * message is stored. That way the receiver knows how much to read.
  */
-#define HEADE_LENGTH 16
+#define HEADER_LENGTH 2
 
-
+/**
+ * If node has an error when broadcasting a hello message, it shall try again this amount at most.
+ */
+#define MAX_HELLO_ATTEMPTS 3
 
 /**
  * Main handler of node. It handles clients's requests, hello messages and timeouts.
  */
-handler_status_t main_handler(fd_info fd);
+handler_status_t main_handler(fd_info fd, server_info srv_info);
 
 
 /**
@@ -24,15 +27,9 @@ void* wait_events(void* arg);
 
 
 /**
- * Generate new id and broadcast a name request.
- */
-int name_request(char* buff, int udpSock, int srvSock, int epfd);
-
-
-/**
  * Start the execution of the node.
  */
-int start_node(int srv_port, const char* srv_ip, int broadcast_port);
+int start_node(int srv_port, const char* srv_ip, int broadcast_port, const char* broadcast_ip);
 
 
 
