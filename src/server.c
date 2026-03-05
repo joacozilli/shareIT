@@ -82,6 +82,8 @@ int start_node(int srv_port, const char* ip, int broadcast_port, const char* bro
     srv_info->broadcast_port = broadcast_port;
     srv_info->broadcast_ip = broadcast_ip;
 
+    //srv_info->peers = concurrent_avl_create(...)
+
     char* hello_msg = malloc(sizeof(char) * 1024);
     snprintf(hello_msg, 1024, "HELLO %s %d %s", srv_info->srv_name, srv_info->srv_port, srv_info->srv_ip);
     hello_msg = realloc(hello_msg, sizeof(char) * (strlen(hello_msg) + 1));

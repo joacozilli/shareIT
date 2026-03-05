@@ -1,7 +1,7 @@
 #ifndef __EVENTS_H__
 #define __EVENTS_H__
 
-
+#include "avl_concurrent.h"
 
 #define EPOLL_WAIT_MAX_EVENTS 1000  // max events returned by epoll_wait
 #define RECV_TIMEOUT_SEC 3          // timeout for calling recv over a client socket (in seconds).
@@ -72,6 +72,7 @@ struct _server_info {
     char* broadcast_ip;
     int broadcast_port;
     char* hello_msg;
+    conc_AVL peers;
 };
 
 typedef struct _server_info* server_info;
