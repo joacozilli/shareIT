@@ -29,7 +29,7 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
         /* transfer a chunk */
 
         /* if finished, return CLIENT_CLOSE_CONNECTION, otherwise DOWNLOAD_IN_PROGRESS  */
-
+        
         break;
 
     case SEND_HELLO_TIMEOUT:

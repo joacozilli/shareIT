@@ -3,7 +3,6 @@
 
 
 
-
 #define EPOLL_WAIT_MAX_EVENTS 1000  // max events returned by epoll_wait
 #define RECV_TIMEOUT_SEC 3          // timeout for calling recv over a client socket (in seconds).
 #define SEND_HELLO_TIMEOUT_SEC 2    // timeout for broadcasting hello message
@@ -37,12 +36,12 @@ typedef enum {
 
 union _data {
     int integer;
-    peer_transfer_info trans_info;
+    transfer_info trans_info;
 };
 typedef union _data* data;
 
 
-struct _peer_transfer_info {
+struct _transfer_info {
     int client_fd;
     int file_fd;
     int transfer_completed; // flag
@@ -51,7 +50,7 @@ struct _peer_transfer_info {
     ssize_t chunk_len;
     size_t chunk_amount_sent;
 };
-typedef struct _peer_transfer_info* peer_transfer_info;
+typedef struct _transfer_info* transfer_info;
 
 
 struct _fd_info {
@@ -59,7 +58,7 @@ struct _fd_info {
     data fd_data;
 };
 /* Relevant information of a file descriptor monitored by epoll.
-If the type is FILE_TRANSFER, fd_data will be a peer_transfer_info type.
+If the type is FILE_TRANSFER, fd_data will be a transfer_info type.
 In other case, fd_data is simply integer. */
 typedef struct _fd_info* fd_info;
 
