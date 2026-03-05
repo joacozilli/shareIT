@@ -39,7 +39,7 @@ void avl_insert(AVL tree, void* value);
 
 /**
  * Apply f to all values in avl tree. It is assumed f doesn't alter current order of values.
- * That is, for all a,b,c in the tree, if a < b < c then f(a) < f(b) < (c)
+ * That is, for all a,b,c in the tree, if a < b < c then f(a) < f(b) < f(c)
  */
 void avl_map(AVL tree, functionMap f);
 

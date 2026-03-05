@@ -34,11 +34,11 @@ typedef enum {
 } fd_type;
 
 
-union _data {
+union _fd_data {
     int integer;
     transfer_info trans_info;
 };
-typedef union _data* data;
+typedef union _fd_data* fd_data;
 
 
 struct _transfer_info {
@@ -55,7 +55,7 @@ typedef struct _transfer_info* transfer_info;
 
 struct _fd_info {
     fd_type type;
-    data fd_data;
+    fd_data fd_data;
 };
 /* Relevant information of a file descriptor monitored by epoll.
 If the type is FILE_TRANSFER, fd_data will be a transfer_info type.
