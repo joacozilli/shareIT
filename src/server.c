@@ -18,6 +18,17 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
         uint16_t msg_len;
         int nbytes = recv_tcp_message(fd->fd_data->integer, (void*) &msg_len, HEADER_LENGTH);
 
+        /* if download request and the file exists, do this */
+        transfer_info trans = malloc(sizeof (struct _transfer_info));
+        trans->client_fd = fd->fd_data;
+        trans->file_fd; // = open(FILEPATH,...)
+        trans->chunk_amount_sent = 0;
+        trans->chunk_len = FILE_TRANSFER_CHUNK_SIZE;
+        trans->transfer_completed = 0;
+        fd->fd_data = trans;
+        fd->type = FILE_TRANSFER;
+        return CLIENT_NEW_DOWNLOAD_REQUEST;
+
         break;
 
     case SOCKET_UDP:

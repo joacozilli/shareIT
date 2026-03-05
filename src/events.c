@@ -112,7 +112,8 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
 
         handler_status_t status = handler(fd, srv_info);
 
-        if (status == CLIENT_CONTINUE_CONNECTION) {
+        switch (status) {
+        case  CLIENT_CONTINUE_CONNECTION:
             struct epoll_event cliEvent;
             cliEvent.data.ptr = fd;
             cliEvent.events = EPOLLIN | EPOLLONESHOT;
@@ -123,24 +124,39 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
                 free(fd);
                 errnoprintf("epoll_ctl in %s", __func__);
             }
-        }
-        else if (status == CLIENT_CLOSE_CONNECTION) {
+            break;
+        
+        case CLIENT_CLOSE_CONNECTION:
             epoll_ctl(epfd, EPOLL_CTL_DEL, fd->fd_data->integer, NULL);
             close(fd->fd_data->integer);
-            free(fd);
-        }      
-        else if (status == TIMEOUT_DONE) {
+            free(fd);   
+            break;
+        
+        case CLIENT_NEW_DOWNLOAD_REQUEST:
+        case DOWNLOAD_IN_PROGRESS:
+            struct epoll_event downloadEvent;
+            downloadEvent.data.ptr = fd;
+            downloadEvent.events = EPOLLIN | EPOLLOUT | EPOLLONESHOT;
+            if (epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->trans_info->client_fd, &downloadEvent) < 0) {
+                close(fd->fd_data->trans_info->client_fd);
+                close(fd->fd_data->trans_info->file_fd);
+                free(fd->fd_data->trans_info);
+                free(fd);
+                errnoprintf("epoll_ctl in %s", __func__);
+            }
+            break;
+        
+        case TIMEOUT_DONE:
             struct epoll_event timeoutEvent;
             timeoutEvent.data.ptr = fd;
             timeoutEvent.events = EPOLLIN | EPOLLONESHOT;
             epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &timeoutEvent);
+            break;
+        
+        default:
+            break;
         }
-
-        else if (status == ERROR) {
-            epoll_ctl(epfd, EPOLL_CTL_DEL, fd->fd_data->integer, NULL);
-            close(fd->fd_data->integer);
-            free(fd);
-        }
+  
     }
 
     return 0;
