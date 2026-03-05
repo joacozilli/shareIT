@@ -28,7 +28,7 @@ int create_srv_epoll(int srvSock, int udpSock) {
     }
 
     fd_info server = malloc(sizeof(struct _fd_info));
-    server->integer = srvSock;
+    server->fd_data->integer = srvSock;
     server->type = SOCKET_TCP_LISTENER;
     struct epoll_event srvEvent;
     srvEvent.data.ptr = server;
@@ -41,7 +41,7 @@ int create_srv_epoll(int srvSock, int udpSock) {
     }
 
     fd_info udp = malloc(sizeof(struct _fd_info));
-    udp->integer = udpSock;
+    udp->fd_data->integer = udpSock;
     udp->type = SOCKET_UDP;
     struct epoll_event udpEvent;
     udpEvent.data.ptr = udp;
@@ -74,7 +74,7 @@ int accept_client_connection(int epfd, int srvSock) {
     }
 
     fd_info sockInf = malloc(sizeof(struct _fd_info));
-    sockInf->integer = clientfd;
+    sockInf->fd_data->integer = clientfd;
     sockInf->type = SOCKET_TCP_CLIENT;
     struct epoll_event event;
     event.events = EPOLLIN | EPOLLONESHOT;
@@ -89,6 +89,7 @@ int accept_client_connection(int epfd, int srvSock) {
     return 0;
 }
 
+
 int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler)(fd_info fd, server_info srv_info)) {
     struct epoll_event eventsQueue[EPOLL_WAIT_MAX_EVENTS];
     int eventsReady = epoll_wait(epfd, eventsQueue, EPOLL_WAIT_MAX_EVENTS, -1);
@@ -100,12 +101,12 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
         fd_info fd = eventsQueue[i].data.ptr;
 
         if (fd->type == SOCKET_TCP_LISTENER) {
-            if (accept_client_connection(epfd, fd->integer) < 0)
+            if (accept_client_connection(epfd, fd->fd_data->integer) < 0)
                 eprintf("unable to accept client connection in %s", __func__);
             struct epoll_event srvEvent;
             srvEvent.data.ptr = fd;
             srvEvent.events = EPOLLIN | EPOLLONESHOT;
-            epoll_ctl(epfd, EPOLL_CTL_MOD, fd->integer, &srvEvent);
+            epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &srvEvent);
             continue;
         }
 
@@ -117,26 +118,27 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
             cliEvent.events = EPOLLIN | EPOLLONESHOT;
 
             /* if unable to add again to epoll, close connection (very rare though) */
-            if (epoll_ctl(epfd, EPOLL_CTL_MOD, fd->integer, &cliEvent) < 0) {
-                close(fd->integer);
+            if (epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &cliEvent) < 0) {
+                close(fd->fd_data->integer);
                 free(fd);
                 errnoprintf("epoll_ctl in %s", __func__);
             }
         }
         else if (status == CLIENT_CLOSE_CONNECTION) {
-            epoll_ctl(epfd, EPOLL_CTL_DEL, fd->integer, NULL);
-            close(fd->integer);
+            epoll_ctl(epfd, EPOLL_CTL_DEL, fd->fd_data->integer, NULL);
+            close(fd->fd_data->integer);
             free(fd);
         }      
         else if (status == TIMEOUT_DONE) {
             struct epoll_event timeoutEvent;
             timeoutEvent.data.ptr = fd;
             timeoutEvent.events = EPOLLIN | EPOLLONESHOT;
-            epoll_ctl(epfd, EPOLL_CTL_MOD, fd->integer, &timeoutEvent);
+            epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &timeoutEvent);
         }
+
         else if (status == ERROR) {
-            epoll_ctl(epfd, EPOLL_CTL_DEL, fd->integer, NULL);
-            close(fd->integer);
+            epoll_ctl(epfd, EPOLL_CTL_DEL, fd->fd_data->integer, NULL);
+            close(fd->fd_data->integer);
             free(fd);
         }
     }
@@ -170,7 +172,7 @@ int create_hello_timeout(int epfd) {
     }
 
     fd_info hello = malloc(sizeof (struct _fd_info));
-    hello->integer = hellofd;
+    hello->fd_data->integer = hellofd;
     hello->type = SEND_HELLO_TIMEOUT;
 
     struct epoll_event helloEvent;
@@ -212,7 +214,7 @@ int create_cleanup_timeout(int epfd) {
     }
 
     fd_info cleanup = malloc(sizeof (struct _fd_info));
-    cleanup->integer = cleanupfd;
+    cleanup->fd_data->integer = cleanupfd;
     cleanup->type = CLEANUP_TIMEOUT;
 
     struct epoll_event helloEvent;

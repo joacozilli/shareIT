@@ -16,17 +16,26 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
     case SOCKET_TCP_CLIENT:
         /* client request */
         uint16_t msg_len;
-        int nbytes = recv_tcp_message(fd->integer, (void*) &msg_len, HEADER_LENGTH);
+        int nbytes = recv_tcp_message(fd->fd_data->integer, (void*) &msg_len, HEADER_LENGTH);
 
         break;
+
     case SOCKET_UDP:
         /* hello messages. Must discriminate and ignore my own hello's */
 
         break;
+
+    case FILE_TRANSFER:
+        /* transfer a chunk */
+
+        /* if finished, return CLIENT_CLOSE_CONNECTION, otherwise DOWNLOAD_IN_PROGRESS  */
+
+        break;
+
     case SEND_HELLO_TIMEOUT:
         /* hello timeout has ended. Must broadcast hello again */
         u_int64_t buff;
-        if (read(fd->integer, (void*) &buff, 8) < 0) {
+        if (read(fd->fd_data->integer, (void*) &buff, 8) < 0) {
             errnoprintf("read in %s", __func__);
             return ERROR;
         }

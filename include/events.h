@@ -3,6 +3,7 @@
 
 
 
+
 #define EPOLL_WAIT_MAX_EVENTS 1000  // max events returned by epoll_wait
 #define RECV_TIMEOUT_SEC 3          // timeout for calling recv over a client socket (in seconds).
 #define SEND_HELLO_TIMEOUT_SEC 2    // timeout for broadcasting hello message
@@ -10,31 +11,58 @@
 
 #define MAX_TOLERANCE 3
 
+#define FILE_TRANSFER_CHUNK_SIZE 1024 // files are transfered by chunks of this size of bytes
 
 /* Type returned by handler function passed to wait_epoll_events. Describes what has the handler done
 and what should be done with the file descriptor after handling the event. */
 typedef enum {
-    CLIENT_CONTINUE_CONNECTION, // the event was from a client and it will continue the connection
-    CLIENT_CLOSE_CONNECTION,    // the event was from a client and it closed connection
-    TIMEOUT_DONE,               // the event was a timeout
-    ERROR                       // critical error when handling event, close and remove file descriptor
+    CLIENT_CONTINUE_CONNECTION,     // the event was from a client, it was completed and the client will continue the connection
+    CLIENT_CLOSE_CONNECTION,        // the event was from a client, it was completed and the client closed connection
+    CLIENT_NEW_DOWNLOAD_REQUEST,    // the event was a new download request. Rearm file descriptor into epoll appropriately
+    DOWNLOAD_IN_PROGRESS,           // the event was a file transfer still in progress. 
+    TIMEOUT_DONE,                   // the event was a timeout
+    ERROR,                          // critical error when handling event, close and remove file descriptor
 } handler_status_t;
 
 /* describes what type is a file descriptor. */
 typedef enum {
     SOCKET_TCP_LISTENER, 
     SOCKET_TCP_CLIENT,
+    FILE_TRANSFER,
     SOCKET_UDP,
     SEND_HELLO_TIMEOUT,
     CLEANUP_TIMEOUT
 } fd_type;
 
 
-struct _fd_info {
+union _data {
     int integer;
-    fd_type type;
+    peer_transfer_info trans_info;
 };
+typedef union _data* data;
+
+
+struct _peer_transfer_info {
+    int client_fd;
+    int file_fd;
+    int transfer_completed; // flag
+
+    char chunk_buffer[FILE_TRANSFER_CHUNK_SIZE];
+    ssize_t chunk_len;
+    size_t chunk_amount_sent;
+};
+typedef struct _peer_transfer_info* peer_transfer_info;
+
+
+struct _fd_info {
+    fd_type type;
+    data fd_data;
+};
+/* Relevant information of a file descriptor monitored by epoll.
+If the type is FILE_TRANSFER, fd_data will be a peer_transfer_info type.
+In other case, fd_data is simply integer. */
 typedef struct _fd_info* fd_info;
+
 
 struct _server_info {
     char* srv_name;
