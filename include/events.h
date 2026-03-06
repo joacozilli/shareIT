@@ -19,7 +19,7 @@ typedef enum {
     CLIENT_CLOSE_CONNECTION,        // the event was from a client, it was completed and the client closed connection
     CLIENT_NEW_DOWNLOAD_REQUEST,    // the event was a new download request. Rearm file descriptor into epoll appropriately
     DOWNLOAD_IN_PROGRESS,           // the event was a file transfer still in progress. 
-    TIMEOUT_DONE,                   // the event was a timeout
+    TIMEOUT_OR_BROADCAST,           // the event was a timeout or udp broadcast. Rearm socket normally.
     ERROR,                          // critical error when handling event, close and remove file descriptor
 } handler_status_t;
 

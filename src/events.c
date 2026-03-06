@@ -146,11 +146,11 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
             }
             break;
         
-        case TIMEOUT_DONE:
-            struct epoll_event timeoutEvent;
-            timeoutEvent.data.ptr = fd;
-            timeoutEvent.events = EPOLLIN | EPOLLONESHOT;
-            epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &timeoutEvent);
+        case TIMEOUT_OR_BROADCAST:
+            struct epoll_event event;
+            event.data.ptr = fd;
+            event.events = EPOLLIN | EPOLLONESHOT;
+            epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &event);
             break;
         
         default:

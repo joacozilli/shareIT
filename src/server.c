@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "array.h"
 #include "str.h"
+#include "peer.h"
 
 
 handler_status_t main_handler(fd_info fd, server_info srv_info) {
@@ -37,11 +38,21 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
     case SOCKET_UDP:
         /* hello messages. Must discriminate and ignore my own hello's */
         char buffer[255];
-        int nbytes = recv_udp_message(srv_info->udp_socket, buffer, 255);
+        int nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
         Array arr = parse_input(buffer, " ");
 
-        
+        /* hello messages have the form HELLO [NAME] [IP] [PORT]*/
+
+        if (array_size(arr) == 4 && strcmp(array_idx(arr, 0), "HELLO")) {
+            struct _peer p;
+            p.name = array_idx(arr, 1);
+            p.ip = array_idx(arr, 2);
+            p.port = array_idx(arr, 3);
+            p.tolerance = 0;
+            concurrent_avl_insert(srv_info->peers, &p);
+        }
         array_destroy(arr);
+        return TIMEOUT_OR_BROADCAST;
         break;
 
     case FILE_TRANSFER:
@@ -73,7 +84,7 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
             else
                 return ERROR;
         }
-        return TIMEOUT_DONE;
+        return TIMEOUT_OR_BROADCAST;
         break;
     case CLEANUP_TIMEOUT:
         /* clean timeout has ended */
