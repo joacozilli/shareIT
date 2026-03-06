@@ -34,12 +34,6 @@ typedef enum {
 } fd_type;
 
 
-union _fd_data {
-    int integer;
-    transfer_info trans_info;
-};
-typedef union _fd_data* fd_data;
-
 
 struct _transfer_info {
     int client_fd;
@@ -47,10 +41,17 @@ struct _transfer_info {
     int transfer_completed; // flag
 
     char chunk_buffer[FILE_TRANSFER_CHUNK_SIZE];
-    ssize_t chunk_len;
-    size_t chunk_amount_sent;
+    int chunk_len;
+    int chunk_amount_sent;
 };
 typedef struct _transfer_info* transfer_info;
+
+
+union _fd_data {
+    int integer;
+    transfer_info trans_info;
+};
+typedef union _fd_data* fd_data;
 
 
 struct _fd_info {

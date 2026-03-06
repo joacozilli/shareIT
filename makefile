@@ -1,5 +1,7 @@
 COMPILER = gcc
-FLAGS = -Wall -Wextra -g -Isrc -Iinclude
+FLAGS = -Wall -Wextra -g -Isrc -Iinclude -Isrc/data_structures \
+		-Isrc/data_structures/avl_tree -Isrc/data_structures/avl_concurrent \
+		-Isrc/data_structures/array
 EXEC = shareIT
 CONFIG_FILE_PATH = "config.json"
 

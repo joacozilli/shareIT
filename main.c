@@ -14,16 +14,8 @@
 #include "src/data_structures/array/array.h"
 #include "src/data_structures/avl_tree/avl_tree.h"
 
-#include "include/events.h"
-#include "include/network.h"
-
-// node structure would be something like this
-// struct _Peer {
-//     char* name;
-//     char ip[INET_ADDDRSTRLEN];
-//     int port;
-//     int tolerance;
-// };
+#include "events.h"
+#include "network.h"
 
 
 int main() {

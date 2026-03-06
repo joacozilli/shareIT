@@ -5,10 +5,13 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/epoll.h>
+#include <string.h>
 
 #include "network.h"
 #include "events.h"
 #include "utils.h"
+#include "array.h"
+#include "str.h"
 
 
 handler_status_t main_handler(fd_info fd, server_info srv_info) {
@@ -33,7 +36,12 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
 
     case SOCKET_UDP:
         /* hello messages. Must discriminate and ignore my own hello's */
+        char buffer[255];
+        int nbytes = recv_udp_message(srv_info->udp_socket, buffer, 255);
+        Array arr = parse_input(buffer, " ");
 
+        
+        array_destroy(arr);
         break;
 
     case FILE_TRANSFER:
