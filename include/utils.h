@@ -31,5 +31,12 @@ extern pthread_mutex_t eprintf_mutex;
  */
 int safe_strerror(char* errbuff, size_t bufflen);
 
+/**
+ * Parse string input into tokens based on delim and return array with the tokens.
+ * If there is no token, return NULL;
+ */
+Array parse_input(char* input, char* delim);
+
+
 
 #endif
