@@ -6,8 +6,10 @@
 
 peer peer_copy(peer p) {
     peer new = malloc(sizeof(struct _peer));
-    new->name = p->name;
-    strncpy(new->ip, p->ip, INET_ADDRSTRLEN);
+    new->name = malloc(sizeof(char) * (strlen(p->name) + 1));
+    strcpy(p->name, new->name);
+    new->ip = malloc(sizeof(char) * (strlen(p->ip) + 1));
+    strcpy(p->ip, new->ip);
     new->port = p->port;
     new->tolerance = p->tolerance;
     return new;

@@ -15,8 +15,8 @@
 
 struct _Array {
     void** elems;
-    unsigned size;
-    unsigned capacity;
+    unsigned int size;
+    unsigned int capacity;
     functionCopy copy;
     functionDelete del;
     functionPrint print;
@@ -39,7 +39,7 @@ void array_add(Array arr, void* value);
 /**
  * return value in i index in the array. Return NULL on error.
  */
-void* array_idx(Array arr, int i);
+void* array_idx(Array arr, unsigned int i);
 
 /**
  * return the array size.

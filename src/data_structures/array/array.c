@@ -47,7 +47,7 @@ void array_add(Array arr, void* value) {
     arr->elems[arr->size-1] = arr->copy(value);
 }
 
-void* array_idx(Array arr, int i) {
+void* array_idx(Array arr, unsigned int i) {
     if (!arr) {
         eprintf("array given is NULL in %s\n", __func__);
         return NULL;

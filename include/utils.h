@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <pthread.h>
 
+#include "array.h"
+
 // mutex for printing error messages
 extern pthread_mutex_t eprintf_mutex;
 

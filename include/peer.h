@@ -1,12 +1,11 @@
 #ifndef __PEER_H__
 #define __PEER_H__
 
-#include <arpa/inet.h>
 
 
 struct _peer {
     char* name;
-     char ip[INET_ADDRSTRLEN];
+     char* ip;
      int port;
      int tolerance;
 };

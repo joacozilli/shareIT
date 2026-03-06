@@ -1,5 +1,4 @@
 #include "utils.h"
-#include "array.h"
 #include "str.h"
 #include <string.h>
 #include <stdio.h>
