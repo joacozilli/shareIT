@@ -37,6 +37,11 @@ Array array_create(unsigned int capacity, functionCopy copy, functionDelete del,
 void array_add(Array arr, void* value);
 
 /**
+ * return value in i index in the array. Return NULL on error.
+ */
+void* array_idx(Array arr, int i);
+
+/**
  * return the array size.
  */
 unsigned int array_size(Array arr);

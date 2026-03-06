@@ -47,6 +47,19 @@ void array_add(Array arr, void* value) {
     arr->elems[arr->size-1] = arr->copy(value);
 }
 
+void* array_idx(Array arr, int i) {
+    if (!arr) {
+        eprintf("array given is NULL in %s\n", __func__);
+        return NULL;
+    }
+    if (i >= arr->size) {
+        eprintf("index is larger than array size in %s", __func__);
+        return NULL;
+    }
+    return arr->elems[i];
+}
+
+
 unsigned int array_size(Array arr) {
     if (!arr) {
         eprintf("array given is NULL in %s\n", __func__);
