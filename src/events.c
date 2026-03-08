@@ -92,7 +92,7 @@ int accept_client_connection(int epfd, int srvSock) {
 }
 
 
-int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler)(fd_info fd, server_info srv_info)) {
+int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler)(fd_info fd, uint32_t events, server_info srv_info)) {
     while (1) {
         struct epoll_event eventsQueue[EPOLL_WAIT_MAX_EVENTS];
         int eventsReady = epoll_wait(epfd, eventsQueue, EPOLL_WAIT_MAX_EVENTS, -1);
@@ -114,7 +114,7 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
                 continue;
             }
 
-            handler_status_t status = handler(fd, srv_info);
+            handler_status_t status = handler(fd, eventsQueue[i].events, srv_info);
 
             switch (status) {
             case  CLIENT_CONTINUE_CONNECTION:
@@ -136,8 +136,7 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
                 free(fd);   
                 break;
             
-            case CLIENT_NEW_DOWNLOAD_REQUEST:
-            case DOWNLOAD_IN_PROGRESS:
+            case DOWNLOAD_REQUEST:
                 struct epoll_event downloadEvent;
                 downloadEvent.data.ptr = fd;
                 downloadEvent.events = EPOLLIN | EPOLLOUT | EPOLLONESHOT;

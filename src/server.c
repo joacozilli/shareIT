@@ -15,7 +15,7 @@
 #include "avl_concurrent.h"
 
 
-handler_status_t main_handler(fd_info fd, server_info srv_info) {
+handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info) {
     switch (fd->type) {
     case SOCKET_TCP_CLIENT:
         /* client request */
@@ -32,14 +32,15 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
         fd->fd_data = malloc(sizeof(union _fd_data));
         fd->fd_data->trans_info = trans;
         fd->type = FILE_TRANSFER;
-        return CLIENT_NEW_DOWNLOAD_REQUEST;
+        return DOWNLOAD_REQUEST;
 
         break;
 
     case SOCKET_UDP:
         char buffer[255];
         nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
-        printf("buffer: %s\n", buffer);
+
+        printf("udp msg received: %s\n", buffer);
         Array arr = parse_input(buffer, " ");
         if (arr == NULL)
             return TIMEOUT_OR_BROADCAST;
@@ -50,8 +51,10 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
             char* ip = array_idx(arr, 2);
             int port = atoi(array_idx(arr, 3));
 
-            if (!strcmp(ip, srv_info->srv_ip) && port == srv_info->srv_port)
+            if (!strcmp(ip, srv_info->srv_ip) && port == srv_info->srv_port) {
+                array_destroy(arr);
                 return TIMEOUT_OR_BROADCAST;
+            }
             struct _peer p;
             p.name = name;
             p.ip = ip;
@@ -67,7 +70,13 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
 
     case FILE_TRANSFER:
         /* transfer a chunk */
+        if (events & EPOLLOUT) {
 
+        }
+        /* client sent something, probably an error during transfer on his behalf */
+        else if (events & EPOLLIN) {
+
+        }
         /* if finished, return CLIENT_CLOSE_CONNECTION, otherwise DOWNLOAD_IN_PROGRESS  */
         
         break;

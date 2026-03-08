@@ -1,6 +1,7 @@
 #ifndef __SERVER_H__
 #define __SERVER_H__
 
+#include <stdint.h>
 #include "events.h"
 
 /**
@@ -24,7 +25,7 @@
  * 
  * When the client fd is ready for write, a chunk is transfered. This is done inside the handler.
  */
-handler_status_t main_handler(fd_info fd, server_info srv_info);
+handler_status_t main_handler(fd_info fd, uint32_t events, server_info srv_info);
 
 
 /**

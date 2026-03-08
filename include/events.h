@@ -1,6 +1,7 @@
 #ifndef __EVENTS_H__
 #define __EVENTS_H__
 
+#include <stdint.h>
 #include "avl_concurrent.h"
 
 #define EPOLL_WAIT_MAX_EVENTS 1000  // max events returned by epoll_wait
@@ -12,15 +13,14 @@
 
 #define FILE_TRANSFER_CHUNK_SIZE 1024 // files are transfered by chunks of this size of bytes
 
-/* Type returned by handler function passed to wait_epoll_events. Describes what has the handler done
+/* Type returned by handler function passed to wait_epoll_events. Describes what the handler has done
 and what should be done with the file descriptor after handling the event. */
 typedef enum {
-    CLIENT_CONTINUE_CONNECTION,     // the event was from a client, it was completed and the client will continue the connection
-    CLIENT_CLOSE_CONNECTION,        // the event was from a client, it was completed and the client closed connection
-    CLIENT_NEW_DOWNLOAD_REQUEST,    // the event was a new download request. Rearm file descriptor into epoll appropriately
-    DOWNLOAD_IN_PROGRESS,           // the event was a file transfer still in progress. 
-    TIMEOUT_OR_BROADCAST,           // the event was a timeout or udp broadcast. Rearm socket normally.
-    ERROR,                          // critical error when handling event, close and remove file descriptor
+    CLIENT_CONTINUE_CONNECTION,   // the event was from a client, it was completed and the client will continue the connection.
+    CLIENT_CLOSE_CONNECTION,      // the event was from a client, it was completed and the client closed connection.
+    DOWNLOAD_REQUEST,             // the event was a download request (either new or in progress already). Rearm file descriptor into epoll appropriately.
+    TIMEOUT_OR_BROADCAST,         // the event was a timeout or udp broadcast. Rearm socket normally.
+    ERROR,                        // critical error when handling event, close and remove file descriptor.
 } handler_status_t;
 
 /* describes what type is a file descriptor. */
@@ -94,7 +94,7 @@ int accept_client_connection(int epfd, int srvSock);
  * wait for epoll events. If the ready file descriptor is the server, a new connection is accepted;
  * otherwise, it is passed to the handler function.
  */
-int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler)(fd_info fd, server_info srv_info));
+int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler)(fd_info fd, uint32_t events, server_info srv_info));
 
 /**
  * Create file descriptor for hello timeout with timerfd_create and add it to the epoll instance.
