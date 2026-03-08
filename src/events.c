@@ -91,72 +91,74 @@ int accept_client_connection(int epfd, int srvSock) {
 
 
 int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler)(fd_info fd, server_info srv_info)) {
-    struct epoll_event eventsQueue[EPOLL_WAIT_MAX_EVENTS];
-    int eventsReady = epoll_wait(epfd, eventsQueue, EPOLL_WAIT_MAX_EVENTS, -1);
-    if (eventsReady < 0) {
-        errnoprintf("epoll_wait in %s", __func__);
-        return -1;
-    }
-    for (int i = 0; i < eventsReady; i++) {
-        fd_info fd = eventsQueue[i].data.ptr;
-
-        if (fd->type == SOCKET_TCP_LISTENER) {
-            if (accept_client_connection(epfd, fd->fd_data->integer) < 0)
-                eprintf("unable to accept client connection in %s", __func__);
-            struct epoll_event srvEvent;
-            srvEvent.data.ptr = fd;
-            srvEvent.events = EPOLLIN | EPOLLONESHOT;
-            epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &srvEvent);
-            continue;
+    while (1) {
+        struct epoll_event eventsQueue[EPOLL_WAIT_MAX_EVENTS];
+        int eventsReady = epoll_wait(epfd, eventsQueue, EPOLL_WAIT_MAX_EVENTS, -1);
+        if (eventsReady < 0) {
+            errnoprintf("epoll_wait in %s", __func__);
+            return -1;
         }
+        for (int i = 0; i < eventsReady; i++) {
+            fd_info fd = eventsQueue[i].data.ptr;
 
-        handler_status_t status = handler(fd, srv_info);
+            if (fd->type == SOCKET_TCP_LISTENER) {
+                if (accept_client_connection(epfd, fd->fd_data->integer) < 0)
+                    eprintf("unable to accept client connection in %s", __func__);
+                struct epoll_event srvEvent;
+                srvEvent.data.ptr = fd;
+                srvEvent.events = EPOLLIN | EPOLLONESHOT;
+                epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &srvEvent);
+                continue;
+            }
 
-        switch (status) {
-        case  CLIENT_CONTINUE_CONNECTION:
-            struct epoll_event cliEvent;
-            cliEvent.data.ptr = fd;
-            cliEvent.events = EPOLLIN | EPOLLONESHOT;
+            handler_status_t status = handler(fd, srv_info);
 
-            /* if unable to add again to epoll, close connection (very rare though) */
-            if (epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &cliEvent) < 0) {
+            switch (status) {
+            case  CLIENT_CONTINUE_CONNECTION:
+                struct epoll_event cliEvent;
+                cliEvent.data.ptr = fd;
+                cliEvent.events = EPOLLIN | EPOLLONESHOT;
+
+                /* if unable to add again to epoll, close connection (very rare though) */
+                if (epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &cliEvent) < 0) {
+                    close(fd->fd_data->integer);
+                    free(fd);
+                    errnoprintf("epoll_ctl in %s", __func__);
+                }
+                break;
+            
+            case CLIENT_CLOSE_CONNECTION:
+                epoll_ctl(epfd, EPOLL_CTL_DEL, fd->fd_data->integer, NULL);
                 close(fd->fd_data->integer);
-                free(fd);
-                errnoprintf("epoll_ctl in %s", __func__);
+                free(fd);   
+                break;
+            
+            case CLIENT_NEW_DOWNLOAD_REQUEST:
+            case DOWNLOAD_IN_PROGRESS:
+                struct epoll_event downloadEvent;
+                downloadEvent.data.ptr = fd;
+                downloadEvent.events = EPOLLIN | EPOLLOUT | EPOLLONESHOT;
+                if (epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->trans_info->client_fd, &downloadEvent) < 0) {
+                    close(fd->fd_data->trans_info->client_fd);
+                    close(fd->fd_data->trans_info->file_fd);
+                    free(fd->fd_data->trans_info);
+                    free(fd);
+                    errnoprintf("epoll_ctl in %s", __func__);
+                }
+                break;
+            
+            case TIMEOUT_OR_BROADCAST:
+                struct epoll_event event;
+                event.data.ptr = fd;
+                event.events = EPOLLIN | EPOLLONESHOT;
+                epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &event);
+                break;
+            
+            default:
+                break;
             }
-            break;
-        
-        case CLIENT_CLOSE_CONNECTION:
-            epoll_ctl(epfd, EPOLL_CTL_DEL, fd->fd_data->integer, NULL);
-            close(fd->fd_data->integer);
-            free(fd);   
-            break;
-        
-        case CLIENT_NEW_DOWNLOAD_REQUEST:
-        case DOWNLOAD_IN_PROGRESS:
-            struct epoll_event downloadEvent;
-            downloadEvent.data.ptr = fd;
-            downloadEvent.events = EPOLLIN | EPOLLOUT | EPOLLONESHOT;
-            if (epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->trans_info->client_fd, &downloadEvent) < 0) {
-                close(fd->fd_data->trans_info->client_fd);
-                close(fd->fd_data->trans_info->file_fd);
-                free(fd->fd_data->trans_info);
-                free(fd);
-                errnoprintf("epoll_ctl in %s", __func__);
-            }
-            break;
-        
-        case TIMEOUT_OR_BROADCAST:
-            struct epoll_event event;
-            event.data.ptr = fd;
-            event.events = EPOLLIN | EPOLLONESHOT;
-            epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &event);
-            break;
-        
-        default:
-            break;
+    
         }
-  
     }
 
     return 0;
