@@ -36,7 +36,7 @@ int main() {
     freeifaddrs(ifap);
 
     int srv_port = 60000;
-    char* srv_ip = "192.168.1.77";
+    char* srv_ip = "192.168.1.45";
 
     int broadcast_port = 12345;
     char* broadcast_ip = "192.168.1.255";

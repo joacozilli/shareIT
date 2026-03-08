@@ -40,6 +40,9 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
         char buffer[255];
         nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
         Array arr = parse_input(buffer, " ");
+        printf("udp socket: %d, buffer: %s\n", fd->fd_data->integer, buffer);
+        if (arr == NULL)
+            return TIMEOUT_OR_BROADCAST;
 
         /* hello messages have the form HELLO [NAME] [IP] [PORT]*/
 
@@ -104,6 +107,8 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
     int udpSocket = create_broadcast_udp_socket(broadcast_port, NULL);
 
     int epfd = create_srv_epoll(srvSocket, udpSocket);
+
+    printf("srvSocket: %d, udpSocket: %d, epfd: %d\n", srvSocket, udpSocket, epfd);
 
     server_info srv_info = malloc(sizeof(struct _server_info));
     srv_info->srv_name = srv_name;

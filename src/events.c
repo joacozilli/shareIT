@@ -100,6 +100,7 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
         }
         for (int i = 0; i < eventsReady; i++) {
             fd_info fd = eventsQueue[i].data.ptr;
+            printf("event from fd %d, type %d\n", fd->fd_data->integer, fd->type);
 
             if (fd->type == SOCKET_TCP_LISTENER) {
                 if (accept_client_connection(epfd, fd->fd_data->integer) < 0)
@@ -203,6 +204,7 @@ int create_hello_timeout(int epfd) {
         free(hello);
         return -1;
     }
+    printf("hello timeout fd %d added to epoll\n", hello->fd_data->integer);
 
     return 0;
 }
@@ -245,6 +247,8 @@ int create_cleanup_timeout(int epfd) {
         free(cleanup);
         return -1;
     }
+
+    printf("cleanup timeout fd %d added to epoll\n", cleanup->fd_data->integer);
 
     return 0;
 }
