@@ -36,7 +36,7 @@ void* wait_events(void* arg);
 /**
  * Start the execution of the node.
  */
-int start_node(int srv_port, const char* srv_ip, int broadcast_port, const char* broadcast_ip, char* srv_name);
+int start_node(int srv_port, char* srv_ip, int broadcast_port, char* broadcast_ip, char* srv_name);
 
 
 

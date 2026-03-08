@@ -99,7 +99,7 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
 }
 
 
-int start_node(int srv_port, const char* ip, int broadcast_port, const char* broadcast_ip, char* srv_name) {
+int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, char* srv_name) {
     int srvSocket = create_tcp_listener_socket(srv_port, ip, 1000);
     int udpSocket = create_broadcast_udp_socket(broadcast_port, NULL);
 
