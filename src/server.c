@@ -37,20 +37,25 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
         break;
 
     case SOCKET_UDP:
-        /* hello messages. Must discriminate and ignore my own hello's */
         char buffer[255];
         nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
-        printf("udp socket: %d, buffer: %s\n", fd->fd_data->integer, buffer);
+        printf("buffer: %s\n", buffer);
         Array arr = parse_input(buffer, " ");
         if (arr == NULL)
             return TIMEOUT_OR_BROADCAST;
 
         /* hello messages have the form HELLO [NAME] [IP] [PORT]*/
         if (array_size(arr) == 4 && !strcmp(array_idx(arr, 0), "HELLO")) {
+            char* name = array_idx(arr, 1);
+            char* ip = array_idx(arr, 2);
+            int port = atoi(array_idx(arr, 3));
+
+            if (!strcmp(ip, srv_info->srv_ip) && port == srv_info->srv_port)
+                return TIMEOUT_OR_BROADCAST;
             struct _peer p;
-            p.name = array_idx(arr, 1);
-            p.ip = array_idx(arr, 2);
-            p.port = atoi(array_idx(arr, 3));
+            p.name = name;
+            p.ip = ip;
+            p.port = port;
             p.tolerance = 0;
             concurrent_avl_insert(srv_info->peers, (void*) &p);
             printf("I found a new peer!!\n");
@@ -68,7 +73,6 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
         break;
 
     case SEND_HELLO_TIMEOUT:
-        /* hello timeout has ended. Must broadcast hello again */
         printf("sending hello event...\n");
         u_int64_t buff;
         if (read(fd->fd_data->integer, (void*) &buff, 8) < 0) {
@@ -93,7 +97,6 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
         return TIMEOUT_OR_BROADCAST;
         break;
     case CLEANUP_TIMEOUT:
-        /* clean timeout has ended */
         printf("cleanup event...\n");
         buff;
         read(fd->fd_data->integer, (void*) &buff, 8);

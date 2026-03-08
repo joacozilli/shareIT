@@ -207,7 +207,6 @@ int create_hello_timeout(int epfd) {
         free(hello);
         return -1;
     }
-    printf("hello timeout fd %d added to epoll\n", hello->fd_data->integer);
 
     return 0;
 }
@@ -251,8 +250,6 @@ int create_cleanup_timeout(int epfd) {
         free(cleanup);
         return -1;
     }
-
-    printf("cleanup timeout fd %d added to epoll\n", cleanup->fd_data->integer);
 
     return 0;
 }
