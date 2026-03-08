@@ -28,6 +28,7 @@ int create_srv_epoll(int srvSock, int udpSock) {
     }
 
     fd_info server = malloc(sizeof(struct _fd_info));
+    server->fd_data = malloc(sizeof(union _fd_data));
     server->fd_data->integer = srvSock;
     server->type = SOCKET_TCP_LISTENER;
     struct epoll_event srvEvent;
@@ -41,6 +42,7 @@ int create_srv_epoll(int srvSock, int udpSock) {
     }
 
     fd_info udp = malloc(sizeof(struct _fd_info));
+    udp->fd_data = malloc(sizeof(union _fd_data));
     udp->fd_data->integer = udpSock;
     udp->type = SOCKET_UDP;
     struct epoll_event udpEvent;
@@ -191,6 +193,7 @@ int create_hello_timeout(int epfd) {
     }
 
     fd_info hello = malloc(sizeof (struct _fd_info));
+    hello->fd_data = malloc(sizeof(union _fd_data));
     hello->fd_data->integer = hellofd;
     hello->type = SEND_HELLO_TIMEOUT;
 
@@ -234,6 +237,7 @@ int create_cleanup_timeout(int epfd) {
     }
 
     fd_info cleanup = malloc(sizeof (struct _fd_info));
+    cleanup->fd_data = malloc(sizeof(union _fd_data));
     cleanup->fd_data->integer = cleanupfd;
     cleanup->type = CLEANUP_TIMEOUT;
 

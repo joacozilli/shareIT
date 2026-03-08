@@ -29,6 +29,7 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
         trans->chunk_amount_sent = 0;
         trans->chunk_len = FILE_TRANSFER_CHUNK_SIZE;
         trans->transfer_completed = 0;
+        fd->fd_data = malloc(sizeof(union _fd_data));
         fd->fd_data->trans_info = trans;
         fd->type = FILE_TRANSFER;
         return CLIENT_NEW_DOWNLOAD_REQUEST;
