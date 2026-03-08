@@ -26,5 +26,10 @@ int peer_compare(peer p1, peer p2);
  */
 void peer_delete(peer p);
 
+/**
+ * print peer in stdout.
+ */
+void peer_print(peer p);
+
 
 #endif /* __PEER_H__ */

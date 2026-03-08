@@ -16,6 +16,7 @@
 
 #include "events.h"
 #include "network.h"
+#include "server.h"
 
 
 int main() {
@@ -34,33 +35,15 @@ int main() {
 
     freeifaddrs(ifap);
 
-
-
-    int bc_port = 12345;
     int srv_port = 60000;
-    char* pc_ip = "192.168.1.77";
-    char* broadcast = "255.255.255.255"; // now it works??
+    char* srv_ip = "192.168.1.77";
 
-    char* notebook_ip = "192.168.1.45";
-    int notebook_port = 50000;
+    int broadcast_port = 12345;
+    char* broadcast_ip = "255.255.255.255";
 
-    int tcp_sock = create_tcp_listener_socket(srv_port, pc_ip, 10);
-    int udp_sock = create_broadcast_udp_socket(bc_port, NULL);
+    char* srv_name = "DESK PC";
 
-    int clientfd = create_tcp_client_socket(notebook_port, notebook_ip);
-
-    char* msg = "MESSAGE SENT FROM PC TO NOTEBOOK VIA TCP\n";
-
-    int nbytes = send_tcp_message(clientfd, (void*) msg, strlen(msg));
-    printf("pc sent %d bytes to notebook\n", nbytes);
-
-    char buff[120];
-    nbytes = recv_udp_message(udp_sock, buff, 120);
-    buff[nbytes] = '\0';
-    printf("i received datagram: %s", buff);
-
-    close(tcp_sock);
-    close(udp_sock);
+    start_node(srv_port, srv_ip, broadcast_port, broadcast_ip, srv_name);
 
     return 0;
 }

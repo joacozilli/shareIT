@@ -50,6 +50,8 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
             p.port = array_idx(arr, 3);
             p.tolerance = 0;
             concurrent_avl_insert(srv_info->peers, &p);
+            printf("I found a new peer\n");
+            concurrent_avl_print(srv_info->peers);
         }
         array_destroy(arr);
         return TIMEOUT_OR_BROADCAST;
@@ -112,7 +114,7 @@ int start_node(int srv_port, const char* ip, int broadcast_port, const char* bro
     srv_info->broadcast_port = broadcast_port;
     srv_info->broadcast_ip = broadcast_ip;
 
-    //srv_info->peers = concurrent_avl_create(...)
+    srv_info->peers = concurrent_avl_create(peer_copy, peer_compare, peer_delete, peer_print);
 
     char* hello_msg = malloc(sizeof(char) * 1024);
     snprintf(hello_msg, 1024, "HELLO %s %d %s", srv_info->srv_name, srv_info->srv_port, srv_info->srv_ip);
@@ -120,5 +122,13 @@ int start_node(int srv_port, const char* ip, int broadcast_port, const char* bro
     srv_info->hello_msg = hello_msg;
 
     // start working threads
+
+    wait_epoll_events(epfd, srv_info, main_handler);
+
+    close(srvSocket);
+    close(udpSocket);
+    close(epfd);
+
+    return 0;
 
 }

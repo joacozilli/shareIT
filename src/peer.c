@@ -31,5 +31,12 @@ int peer_compare(peer p1, peer p2) {
 }
 
 void peer_delete(peer p) {
+    free(p->ip);
+    free(p->name);
     free(p);
+}
+
+void peer_print(peer p) {
+    printf("PEER %s\n", p->name);
+    printf(" - ip: %s, port: %d\n", p->ip, p->name);
 }
