@@ -1,6 +1,8 @@
 #ifndef __SERVER_H__
 #define __SERVER_H__
 
+#include "events.h"
+
 /**
  * All messages sent via tcp start with a header of this length where the length of the actual
  * message is stored. That way the receiver knows how much to read.

@@ -4,24 +4,27 @@
 #include <string.h>
 
 
-peer peer_copy(peer p) {
+void* peer_copy(void* p) {
+    peer pp = (peer) p;
     peer new = malloc(sizeof(struct _peer));
-    new->name = malloc(sizeof(char) * (strlen(p->name) + 1));
-    strcpy(p->name, new->name);
-    new->ip = malloc(sizeof(char) * (strlen(p->ip) + 1));
-    strcpy(p->ip, new->ip);
-    new->port = p->port;
-    new->tolerance = p->tolerance;
+    new->name = malloc(sizeof(char) * (strlen(pp->name) + 1));
+    strcpy(pp->name, new->name);
+    new->ip = malloc(sizeof(char) * (strlen(pp->ip) + 1));
+    strcpy(pp->ip, new->ip);
+    new->port = pp->port;
+    new->tolerance = pp->tolerance;
     return new;
 }
 
 
-int peer_compare(peer p1, peer p2) {
-    int r = strcmp(p1->ip, p2->ip);
+int peer_compare(void* p1, void* p2) {
+    peer pp1 = (peer) p1;
+    peer pp2 = (peer) p2;
+    int r = strcmp(pp1->ip, pp2->ip);
     if (r == 0) {
-        if (p1->port == p2->port)
+        if (pp1->port == pp2->port)
             return 0;
-        if (p1->port < p2->port)
+        if (pp1->port < pp2->port)
             return -1;
         return 1;
     }
@@ -30,13 +33,15 @@ int peer_compare(peer p1, peer p2) {
     return 1;
 }
 
-void peer_delete(peer p) {
-    free(p->ip);
-    free(p->name);
-    free(p);
+void peer_delete(void* p) {
+    peer pp = (peer) p;
+    free(pp->ip);
+    free(pp->name);
+    free(pp);
 }
 
-void peer_print(peer p) {
-    printf("PEER %s\n", p->name);
-    printf(" - ip: %s, port: %d\n", p->ip, p->name);
+void peer_print(void* p) {
+    peer pp = (peer) p;
+    printf("PEER %s\n", pp->name);
+    printf(" - ip: %s, port: %d\n", pp->ip, pp->port);
 }

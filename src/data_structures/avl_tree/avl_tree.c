@@ -144,6 +144,11 @@ void avl_insert(AVL tree, void* value) {
 }
 
 
+void avl_delete(AVL tree, void* value) {
+    return;
+}
+
+
 
 void destroy_aux(AVLNode T, functionDelete del) {
     if(T == NULL)

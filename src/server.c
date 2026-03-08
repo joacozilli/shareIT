@@ -8,11 +8,11 @@
 #include <string.h>
 
 #include "network.h"
-#include "events.h"
 #include "utils.h"
 #include "array.h"
 #include "str.h"
 #include "peer.h"
+#include "avl_concurrent.h"
 
 
 handler_status_t main_handler(fd_info fd, server_info srv_info) {
@@ -24,12 +24,12 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
 
         /* if download request and the file exists, do this */
         transfer_info trans = malloc(sizeof (struct _transfer_info));
-        trans->client_fd = fd->fd_data;
+        trans->client_fd = fd->fd_data->integer;
         trans->file_fd; // = open(FILEPATH,...)
         trans->chunk_amount_sent = 0;
         trans->chunk_len = FILE_TRANSFER_CHUNK_SIZE;
         trans->transfer_completed = 0;
-        fd->fd_data = trans;
+        fd->fd_data->trans_info = trans;
         fd->type = FILE_TRANSFER;
         return CLIENT_NEW_DOWNLOAD_REQUEST;
 
@@ -38,7 +38,7 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
     case SOCKET_UDP:
         /* hello messages. Must discriminate and ignore my own hello's */
         char buffer[255];
-        int nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
+        nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
         Array arr = parse_input(buffer, " ");
 
         /* hello messages have the form HELLO [NAME] [IP] [PORT]*/
@@ -47,9 +47,9 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
             struct _peer p;
             p.name = array_idx(arr, 1);
             p.ip = array_idx(arr, 2);
-            p.port = array_idx(arr, 3);
+            p.port = atoi(array_idx(arr, 3));
             p.tolerance = 0;
-            concurrent_avl_insert(srv_info->peers, &p);
+            concurrent_avl_insert(srv_info->peers, (void*) &p);
             printf("I found a new peer\n");
             concurrent_avl_print(srv_info->peers);
         }

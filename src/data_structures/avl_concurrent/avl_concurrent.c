@@ -1,6 +1,7 @@
 #include "avl_concurrent.h"
 #include "utils.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 
 conc_AVL concurrent_avl_create(functionCopy copy, functionCompareOrd cmp, functionDelete del, functionPrint print) {  

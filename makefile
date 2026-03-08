@@ -10,8 +10,11 @@ SRC = \
 	src/str.c \
 	src/data_structures/array/array.c \
 	src/data_structures/avl_tree/avl_tree.c \
+	src/data_structures/avl_concurrent/avl_concurrent.c \
+	src/peer.c \
 	src/network.c \
 	src/events.c \
+	src/server.c \
 	main.c
 
 # compile program
