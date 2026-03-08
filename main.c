@@ -39,7 +39,7 @@ int main() {
     char* srv_ip = "192.168.1.77";
 
     int broadcast_port = 12345;
-    char* broadcast_ip = "255.255.255.255";
+    char* broadcast_ip = "192.168.1.255";
 
     char* srv_name = "DESK PC";
 

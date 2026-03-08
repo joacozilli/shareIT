@@ -90,7 +90,7 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
         break;
     case CLEANUP_TIMEOUT:
         /* clean timeout has ended */
-    
+        return TIMEOUT_OR_BROADCAST;   
         break;
 
     default:
@@ -121,6 +121,8 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
     hello_msg = realloc(hello_msg, sizeof(char) * (strlen(hello_msg) + 1));
     srv_info->hello_msg = hello_msg;
 
+    create_hello_timeout(epfd);
+    create_cleanup_timeout(epfd);
     // start working threads
 
     wait_epoll_events(epfd, srv_info, main_handler);
