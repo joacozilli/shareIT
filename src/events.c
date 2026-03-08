@@ -237,11 +237,11 @@ int create_cleanup_timeout(int epfd) {
     cleanup->fd_data->integer = cleanupfd;
     cleanup->type = CLEANUP_TIMEOUT;
 
-    struct epoll_event helloEvent;
-    helloEvent.data.ptr = cleanup;
-    helloEvent.events = EPOLLIN | EPOLLONESHOT;
+    struct epoll_event cleanupEvent;
+    cleanupEvent.data.ptr = cleanup;
+    cleanupEvent.events = EPOLLIN | EPOLLONESHOT;
 
-    if (epoll_ctl(epfd, EPOLL_CTL_ADD, cleanupfd, &helloEvent) < 0) {
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, cleanupfd, &cleanupEvent) < 0) {
         errnoprintf("epoll_ctl in %s", __func__);
         close(cleanupfd);
         free(cleanup);

@@ -39,21 +39,20 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
         /* hello messages. Must discriminate and ignore my own hello's */
         char buffer[255];
         nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
-        Array arr = parse_input(buffer, " ");
         printf("udp socket: %d, buffer: %s\n", fd->fd_data->integer, buffer);
+        Array arr = parse_input(buffer, " ");
         if (arr == NULL)
             return TIMEOUT_OR_BROADCAST;
 
         /* hello messages have the form HELLO [NAME] [IP] [PORT]*/
-
-        if (array_size(arr) == 4 && strcmp(array_idx(arr, 0), "HELLO")) {
+        if (array_size(arr) == 4 && !strcmp(array_idx(arr, 0), "HELLO")) {
             struct _peer p;
             p.name = array_idx(arr, 1);
             p.ip = array_idx(arr, 2);
             p.port = atoi(array_idx(arr, 3));
             p.tolerance = 0;
             concurrent_avl_insert(srv_info->peers, (void*) &p);
-            printf("I found a new peer\n");
+            printf("I found a new peer!!\n");
             concurrent_avl_print(srv_info->peers);
         }
         array_destroy(arr);
@@ -69,6 +68,7 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
 
     case SEND_HELLO_TIMEOUT:
         /* hello timeout has ended. Must broadcast hello again */
+        printf("sending hello event...\n");
         u_int64_t buff;
         if (read(fd->fd_data->integer, (void*) &buff, 8) < 0) {
             errnoprintf("read in %s", __func__);
@@ -93,6 +93,9 @@ handler_status_t main_handler(fd_info fd, server_info srv_info) {
         break;
     case CLEANUP_TIMEOUT:
         /* clean timeout has ended */
+        printf("cleanup event...\n");
+        buff;
+        read(fd->fd_data->integer, (void*) &buff, 8);
         return TIMEOUT_OR_BROADCAST;   
         break;
 
@@ -122,7 +125,7 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
     srv_info->peers = concurrent_avl_create(peer_copy, peer_compare, peer_delete, peer_print);
 
     char* hello_msg = malloc(sizeof(char) * 1024);
-    snprintf(hello_msg, 1024, "HELLO %s %d %s", srv_info->srv_name, srv_info->srv_port, srv_info->srv_ip);
+    snprintf(hello_msg, 1024, "HELLO %s %s %d", srv_info->srv_name, srv_info->srv_ip, srv_info->srv_port);
     hello_msg = realloc(hello_msg, sizeof(char) * (strlen(hello_msg) + 1));
     srv_info->hello_msg = hello_msg;
 

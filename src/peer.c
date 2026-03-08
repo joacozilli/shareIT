@@ -8,9 +8,9 @@ void* peer_copy(void* p) {
     peer pp = (peer) p;
     peer new = malloc(sizeof(struct _peer));
     new->name = malloc(sizeof(char) * (strlen(pp->name) + 1));
-    strcpy(pp->name, new->name);
+    strcpy(new->name, pp->name);
     new->ip = malloc(sizeof(char) * (strlen(pp->ip) + 1));
-    strcpy(pp->ip, new->ip);
+    strcpy(new->ip, pp->ip);
     new->port = pp->port;
     new->tolerance = pp->tolerance;
     return new;

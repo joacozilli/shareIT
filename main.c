@@ -13,6 +13,7 @@
 #include "include/str.h"
 #include "src/data_structures/array/array.h"
 #include "src/data_structures/avl_tree/avl_tree.h"
+#include "src/data_structures/avl_concurrent/avl_concurrent.h"
 
 #include "events.h"
 #include "network.h"
@@ -36,14 +37,24 @@ int main() {
     freeifaddrs(ifap);
 
     int srv_port = 60000;
-    char* srv_ip = "192.168.1.45";
+    char* srv_ip = "192.168.1.77";
 
     int broadcast_port = 12345;
     char* broadcast_ip = "192.168.1.255";
 
-    char* srv_name = "DESK PC";
+    char* srv_name = "DESK-PC";
 
     start_node(srv_port, srv_ip, broadcast_port, broadcast_ip, srv_name);
+
+
+    // conc_AVL t = concurrent_avl_create(str_copy, str_compare, str_delete, str_print);
+    // for (int i = 0; i < 100000; i++) {
+    //     char buffer[250];
+    //     sprintf(buffer, "str%d", i);
+    //     concurrent_avl_insert(t, buffer);
+    // }
+    // concurrent_avl_print(t);
+    // concurrent_avl_destroy(t);
 
     return 0;
 }
