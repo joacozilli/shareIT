@@ -9,6 +9,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/timerfd.h>
+#include <sys/fcntl.h>
 
 
 
@@ -58,22 +59,16 @@ int create_srv_epoll(int srvSock, int udpSock) {
     return epfd;
 }
 
+
 int accept_client_connection(int epfd, int srvSock) {
     int clientfd = accept(srvSock, NULL, NULL);
     if (clientfd < 0){
         errnoprintf("accept in %s", __func__);
         return -1;
     }
-
-    struct timeval tv;
-    tv.tv_sec = RECV_TIMEOUT_SEC;
-    tv.tv_usec = 0;
-
-    if (setsockopt(clientfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof tv) < 0) {
-        errnoprintf("setsockopt in %s", __func__);
-        close(clientfd);
-        return -1;
-    }
+    
+    int flags = fcntl(clientfd, F_GETFL, 0);
+    fcntl(clientfd, F_SETFL, flags | O_NONBLOCK);
 
     fd_info sockInf = malloc(sizeof(struct _fd_info));
     sockInf->fd_data->integer = clientfd;
