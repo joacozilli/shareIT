@@ -15,6 +15,13 @@
  */
 #define MAX_HELLO_ATTEMPTS 3
 
+
+/**
+ * function to handle a file transfer. Called inside main_handler whenever the event is a file transfer.
+ */
+handler_status_t file_transfer(fd_info fd);
+
+
 /**
  * Main handler of node. It handles clients's requests, hello messages and timeouts.
  * broadcast hello, reading other's hello's and adding them to neiborhood, making cleanup

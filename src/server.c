@@ -7,6 +7,7 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <string.h>
 #include <errno.h>
 
@@ -16,6 +17,44 @@
 #include "str.h"
 #include "peer.h"
 #include "avl_concurrent.h"
+
+
+handler_status_t file_transfer(fd_info fd) {
+    int nbytes;
+    if (fd->fd_data->trans_info->chunk_amount_sent == fd->fd_data->trans_info->chunk_len) {
+        nbytes = read(fd->fd_data->trans_info->file_fd,
+                        fd->fd_data->trans_info->chunk_buffer,
+                        fd->fd_data->trans_info->chunk_len);
+
+        fd->fd_data->trans_info->chunk_amount_sent = 0;
+        if (nbytes == 0) {
+            /*
+            transfer completed. Rearm fd as type SOCKET_TCP_CLIENT.
+            */
+            close(fd->fd_data->trans_info->file_fd);
+            fd->type = SOCKET_TCP_CLIENT;
+            int temp = fd->fd_data->trans_info->client_fd;
+            free(fd->fd_data->trans_info);
+            fd->fd_data->integer = temp;
+            return CLIENT_CONTINUE_CONNECTION;
+        }
+    }
+    nbytes = send(fd->fd_data->trans_info->client_fd, 
+                    fd->fd_data->trans_info->chunk_buffer + fd->fd_data->trans_info->chunk_amount_sent,
+                    fd->fd_data->trans_info->chunk_len - fd->fd_data->trans_info->chunk_amount_sent, 0);
+    
+    if (nbytes < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+            return DOWNLOAD_REQUEST;
+        else {
+            errnoprintf("send in main_handler (error when sending chunk of file): %s", __func__);
+            return ERROR;
+        }
+    }
+    fd->fd_data->trans_info->chunk_amount_sent += nbytes;
+    return DOWNLOAD_REQUEST;
+
+}
 
 
 handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info) {
@@ -59,18 +98,17 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
                 send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
                 return CLIENT_CONTINUE_CONNECTION;
             }
-        }
 
-        /* if download request and the file exists, do this */
-        transfer_info trans = malloc(sizeof (struct _transfer_info));
-        trans->client_fd = fd->fd_data->integer;
-        trans->file_fd; // = open(FILEPATH,...)
-        trans->chunk_amount_sent = 0;
-        trans->chunk_len = FILE_TRANSFER_CHUNK_SIZE;
-        fd->fd_data = malloc(sizeof(union _fd_data));
-        fd->fd_data->trans_info = trans;
-        fd->type = FILE_TRANSFER;
-        return DOWNLOAD_REQUEST;
+            transfer_info trans = malloc(sizeof (struct _transfer_info));
+            trans->client_fd = fd->fd_data->integer;
+            trans->file_fd; // = open(FILEPATH,...) 
+            trans->chunk_amount_sent = 0;
+            trans->chunk_len = FILE_TRANSFER_CHUNK_SIZE;
+            fd->fd_data = malloc(sizeof(union _fd_data));
+            fd->fd_data->trans_info = trans;
+            fd->type = FILE_TRANSFER;
+            return DOWNLOAD_REQUEST;
+        }
 
         break;
 
@@ -107,41 +145,8 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
 
     case FILE_TRANSFER:
         /* transfer a chunk */
-        if (events & EPOLLOUT) {
-            // whole chunk has been already sent, load next
-            if (fd->fd_data->trans_info->chunk_amount_sent == fd->fd_data->trans_info->chunk_len) {
-                nbytes = read(fd->fd_data->trans_info->file_fd,
-                              fd->fd_data->trans_info->chunk_buffer,
-                              fd->fd_data->trans_info->chunk_len);
-
-                fd->fd_data->trans_info->chunk_amount_sent = 0;
-                if (nbytes == 0) {
-                    /*
-                    transfer completed. Rearm fd as type SOCKET_TCP_CLIENT.
-                    */
-                    close(fd->fd_data->trans_info->file_fd);
-                    fd->type = SOCKET_TCP_CLIENT;
-                    int temp = fd->fd_data->trans_info->client_fd;
-                    free(fd->fd_data->trans_info);
-                    fd->fd_data->integer = temp;
-                    return CLIENT_CONTINUE_CONNECTION;
-                }
-            }
-            nbytes = send(fd->fd_data->trans_info->client_fd, 
-                          fd->fd_data->trans_info->chunk_buffer + fd->fd_data->trans_info->chunk_amount_sent,
-                          fd->fd_data->trans_info->chunk_len - fd->fd_data->trans_info->chunk_amount_sent, 0);
-            
-            if (nbytes < 0) {
-                if (errno == EAGAIN || errno == EWOULDBLOCK)
-                    return DOWNLOAD_REQUEST;
-                else {
-                    errnoprintf("send in main_handler (error when sending chunk of file): %s", __func__);
-                    return ERROR;
-                }
-            }
-            fd->fd_data->trans_info->chunk_amount_sent += nbytes;
-            return DOWNLOAD_REQUEST;
-        }
+        if (events & EPOLLOUT)
+           return file_transfer(fd);
 
         /* client sent something, probably an error during transfer on his behalf */
         else if (events & EPOLLIN) {
