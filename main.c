@@ -46,15 +46,5 @@ int main() {
 
     start_node(srv_port, srv_ip, broadcast_port, broadcast_ip, srv_name);
 
-
-    // conc_AVL t = concurrent_avl_create(str_copy, str_compare, str_delete, str_print);
-    // for (int i = 0; i < 100000; i++) {
-    //     char buffer[250];
-    //     sprintf(buffer, "str%d", i);
-    //     concurrent_avl_insert(t, buffer);
-    // }ds
-    // concurrent_avl_print(t);
-    // concurrent_avl_destroy(t);
-
     return 0;
 }

@@ -49,6 +49,21 @@ Suppose we store N in an avl tree
 - forget node (delete from avl) in lg(n)
 
 download request:
-    - x wants to download file F from n_i
+    - x wants to download files F1,...,Fm from n_i
     - x creates new tcp socket and connects to n_i's listening tcp socket (ip and port known)
-    - x sends download request to n_i
+    - for j=1...m
+        - x sends download request to n_i for Fj and awaits answer from n_i.
+        - if Fj doesn't exist, n_i informs it and continue to next file.
+        - if Fj exist, n_i informs it, rearm x's fd to FILE_TRANSFER type
+          and starts to send chunk by chunk.
+        - if file transfer finished, n_i rearm x's fd to a normal SOCKET_TCP_CLIENT.
+          If j < m, continue, else x informs task completed and closes connection.
+
+download request message structure:
+    - DOWNLOAD_REQUEST [FILENAME]
+
+if file doesn't exist, n_i answer structure:
+    - NOT_FOUND [FILENAME]
+if it exists:
+    - FOUND [FILENAME]
+

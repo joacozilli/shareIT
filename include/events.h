@@ -5,7 +5,6 @@
 #include "avl_concurrent.h"
 
 #define EPOLL_WAIT_MAX_EVENTS 1000  // max events returned by epoll_wait
-#define RECV_TIMEOUT_SEC 3          // timeout for calling recv over a client socket (in seconds).
 #define SEND_HELLO_TIMEOUT_SEC 2    // timeout for broadcasting hello message
 #define CLEANUP_TIMEOUT_SEC 2       // timeout for removing tolerance of all peers
 
@@ -23,6 +22,7 @@ typedef enum {
     ERROR,                        // critical error when handling event, close and remove file descriptor.
 } handler_status_t;
 
+
 /* describes what type is a file descriptor. */
 typedef enum {
     SOCKET_TCP_LISTENER, 
@@ -34,11 +34,9 @@ typedef enum {
 } fd_type;
 
 
-
 struct _transfer_info {
     int client_fd;
     int file_fd;
-    int transfer_completed; // flag
 
     char chunk_buffer[FILE_TRANSFER_CHUNK_SIZE];
     int chunk_len;

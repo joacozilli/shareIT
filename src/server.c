@@ -5,7 +5,10 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/epoll.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #include <string.h>
+#include <errno.h>
 
 #include "network.h"
 #include "utils.h"
@@ -16,11 +19,47 @@
 
 
 handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info) {
+    int nbytes;
+    int buffer_len = 1024;
+    char buffer[buffer_len];
+    uint16_t msg_len;
+    uint16_t msg_len_network_order;
+    Array arr;
     switch (fd->type) {
     case SOCKET_TCP_CLIENT:
-        /* client request */
-        uint16_t msg_len;
-        int nbytes = recv_tcp_message(fd->fd_data->integer, (void*) &msg_len, HEADER_LENGTH);
+        nbytes = recv_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
+        msg_len = ntohs(msg_len_network_order);
+
+        if (nbytes <= 0 || msg_len <= 0)
+            return CLIENT_CLOSE_CONNECTION;
+
+        if (msg_len > buffer_len) {
+            /* message longer than it should, ignore it */
+            char tempbuff[nbytes];
+            recv_tcp_message(fd->fd_data->integer, (void*) tempbuff, nbytes);
+            return CLIENT_CONTINUE_CONNECTION;
+        }
+        nbytes = recv_tcp_message(fd->fd_data->integer, buffer, nbytes);
+        if (nbytes <= 0)
+            return CLIENT_CLOSE_CONNECTION;
+
+        arr = parse_input(buffer, " ");
+        if (arr == NULL)
+            return CLIENT_CONTINUE_CONNECTION;
+        
+        
+        if (array_size(arr) == 2 && !strcmp(array_idx(arr, 0), "DOWNLOAD_REQUEST")) {
+            char* filename = array_idx(arr, 1);
+            if (0 /* file doesn't exist */) {
+                char msg[1024];
+                sprintf(msg, "NOT_FOUND %s", filename);
+                msg_len_network_order = htons(strlen(msg));
+                /* send header first */
+                send_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
+                send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
+                return CLIENT_CONTINUE_CONNECTION;
+            }
+        }
 
         /* if download request and the file exists, do this */
         transfer_info trans = malloc(sizeof (struct _transfer_info));
@@ -28,7 +67,6 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         trans->file_fd; // = open(FILEPATH,...)
         trans->chunk_amount_sent = 0;
         trans->chunk_len = FILE_TRANSFER_CHUNK_SIZE;
-        trans->transfer_completed = 0;
         fd->fd_data = malloc(sizeof(union _fd_data));
         fd->fd_data->trans_info = trans;
         fd->type = FILE_TRANSFER;
@@ -37,7 +75,6 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         break;
 
     case SOCKET_UDP:
-        char buffer[255];
         nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
 
         printf("udp msg received: %s\n", buffer);
@@ -71,13 +108,45 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
     case FILE_TRANSFER:
         /* transfer a chunk */
         if (events & EPOLLOUT) {
+            // whole chunk has been already sent, load next
+            if (fd->fd_data->trans_info->chunk_amount_sent == fd->fd_data->trans_info->chunk_len) {
+                nbytes = read(fd->fd_data->trans_info->file_fd,
+                              fd->fd_data->trans_info->chunk_buffer,
+                              fd->fd_data->trans_info->chunk_len);
 
+                fd->fd_data->trans_info->chunk_amount_sent = 0;
+                if (nbytes == 0) {
+                    /*
+                    transfer completed. Rearm fd as type SOCKET_TCP_CLIENT.
+                    */
+                    close(fd->fd_data->trans_info->file_fd);
+                    fd->type = SOCKET_TCP_CLIENT;
+                    int temp = fd->fd_data->trans_info->client_fd;
+                    free(fd->fd_data->trans_info);
+                    fd->fd_data->integer = temp;
+                    return CLIENT_CONTINUE_CONNECTION;
+                }
+            }
+            nbytes = send(fd->fd_data->trans_info->client_fd, 
+                          fd->fd_data->trans_info->chunk_buffer + fd->fd_data->trans_info->chunk_amount_sent,
+                          fd->fd_data->trans_info->chunk_len - fd->fd_data->trans_info->chunk_amount_sent, 0);
+            
+            if (nbytes < 0) {
+                if (errno == EAGAIN || errno == EWOULDBLOCK)
+                    return DOWNLOAD_REQUEST;
+                else {
+                    errnoprintf("send in main_handler (error when sending chunk of file): %s", __func__);
+                    return ERROR;
+                }
+            }
+            fd->fd_data->trans_info->chunk_amount_sent += nbytes;
+            return DOWNLOAD_REQUEST;
         }
+
         /* client sent something, probably an error during transfer on his behalf */
         else if (events & EPOLLIN) {
 
         }
-        /* if finished, return CLIENT_CLOSE_CONNECTION, otherwise DOWNLOAD_IN_PROGRESS  */
         
         break;
 
