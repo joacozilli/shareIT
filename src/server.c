@@ -17,6 +17,7 @@
 #include "str.h"
 #include "peer.h"
 #include "avl_concurrent.h"
+#include "files.h"
 
 
 handler_status_t file_transfer(fd_info fd) {
@@ -192,7 +193,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
 }
 
 
-int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, char* srv_name) {
+int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, char* srv_name, char* share_dir) {
     int srvSocket = create_tcp_listener_socket(srv_port, ip, 1000);
     int udpSocket = create_broadcast_udp_socket(broadcast_port, NULL);
 
@@ -211,6 +212,13 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
 
     srv_info->peers = concurrent_avl_create(peer_copy, peer_compare, peer_delete, peer_print);
 
+    srv_info->files = get_files(share_dir);
+    if (!srv_info->files)
+        return -1;
+
+    printf("share folder read. Here are all the shareds files:\n");
+    concurrent_avl_print(srv_info->files);
+
     char* hello_msg = malloc(sizeof(char) * 1024);
     snprintf(hello_msg, 1024, "HELLO %s %s %d", srv_info->srv_name, srv_info->srv_ip, srv_info->srv_port);
     hello_msg = realloc(hello_msg, sizeof(char) * (strlen(hello_msg) + 1));
@@ -218,6 +226,7 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
 
     create_hello_timeout(epfd);
     create_cleanup_timeout(epfd);
+
     // start working threads
 
     wait_epoll_events(epfd, srv_info, main_handler);
