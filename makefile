@@ -15,6 +15,7 @@ SRC = \
 	src/network.c \
 	src/events.c \
 	src/server.c \
+	src/files.c \
 	main.c
 
 # compile program
