@@ -109,8 +109,8 @@ AVLNode insert_aux(AVLNode T, void* value, functionCompareOrd cmp, functionCopy 
         new->height = 1;
         return new;
     }
-
-    if (cmp(T->value, value) > 0) {
+    int res = cmp(T->value, value);
+    if (res > 0) {
         T->size++;
         T->left = insert_aux(T->left, value, cmp, copy, del);
         set_height(T);
@@ -119,7 +119,7 @@ AVLNode insert_aux(AVLNode T, void* value, functionCompareOrd cmp, functionCopy 
         return T;
     }
 
-    else if (cmp(T->value, value) < 0) {
+    else if (res < 0) {
         T->size++;
         T->right = insert_aux(T->right, value, cmp, copy, del);
         set_height(T);
@@ -141,6 +141,31 @@ void avl_insert(AVL tree, void* value) {
         return;
     }
     tree->root = insert_aux(tree->root, value, tree->cmp, tree->copy, tree->del);
+}
+
+
+int avl_search_aux(AVLNode T, void* value, functionCompareOrd cmp) {
+    if (T == NULL)
+        return 0;
+
+    int res = cmp(T->value, value);
+
+    if (res == 0)
+        return 1;
+    
+    if (res > 0)
+        return avl_search_aux(T->left, value, cmp);
+
+    if (res < 0)
+        return avl_search_aux(T->right, value, cmp);
+}
+
+int avl_search(AVL tree, void* value) {
+    if(!tree) {
+        eprintf("avl tree given is NULL in %s\n", __func__);
+        return -1;
+    }
+    return avl_search_aux(tree->root, value, tree->cmp);
 }
 
 
