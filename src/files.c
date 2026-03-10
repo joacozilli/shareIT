@@ -54,7 +54,7 @@ conc_AVL get_files(char* dir) {
         sprintf(path, "%s/%s", dir, dp->d_name);
         struct stat st;
         if(stat(path, &st) < 0) {
-            errnoprintf("stat in %s (fle %s)", __func__, dp->d_name);
+            errnoprintf("stat in %s (regarding file %s)", __func__, dp->d_name);
             continue;
         }
         if (S_ISREG(st.st_mode)) {
