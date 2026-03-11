@@ -95,11 +95,11 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         
         if (array_size(arr) == 2 && !strcmp(array_idx(arr, 0), "DOWNLOAD_REQUEST")) {
             char* filename = array_idx(arr, 1);
+            char msg[1024];
             struct _file_info temp;
             temp.name = filename;
             file_info file = concurrent_avl_search(srv_info->files, &temp);
             if (file == NULL) {
-                char msg[1024];
                 sprintf(msg, "NOT_FOUND %s", filename);
                 msg_len_network_order = htons(strlen(msg));
                 /* send header first */
@@ -108,7 +108,13 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
                 array_destroy(arr);
                 return CLIENT_CONTINUE_CONNECTION;
             }
-            
+
+            sprintf(msg, "FOUND %s", filename);
+            msg_len_network_order = htons(strlen(msg));
+
+            send_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
+            send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
+
             char path[1000];
             snprintf(path, 1000, ".src/%s", filename);
             int file_fd = open(path, O_RDONLY);
