@@ -58,11 +58,8 @@ handler_status_t file_transfer(fd_info fd) {
 
 
 
-
-handler_status_t see_files_request(file_info fd, conc_AVL files) {
-    uint16_t msg_len;
-    uint16_t msg_len_network_order;
-
+handler_status_t see_files_request(fd_info fd, conc_AVL files) {
+    return CLIENT_CONTINUE_CONNECTION;
 }
 
 handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info) {

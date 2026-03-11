@@ -43,7 +43,7 @@ void concurrent_avl_map(conc_AVL ctree, functionMap f) {
 void* concurrent_avl_search(conc_AVL ctree, void* value) {
     if (!ctree) {
         eprintf("argument tree given is NULL in %s", __func__);
-        return;
+        return NULL;
     }
 
     pthread_mutex_lock(&ctree->mutex);

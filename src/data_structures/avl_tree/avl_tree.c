@@ -163,7 +163,7 @@ void* avl_search_aux(AVLNode T, void* value, functionCompareOrd cmp) {
 void* avl_search(AVL tree, void* value) {
     if(!tree) {
         eprintf("avl tree given is NULL in %s\n", __func__);
-        return -1;
+        return NULL;
     }
     return avl_search_aux(tree->root, value, tree->cmp);
 }

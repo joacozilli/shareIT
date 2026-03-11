@@ -40,7 +40,7 @@ void avl_insert(AVL tree, void* value);
 /**
  * Return pointer to value if it is in tree, otherwise NULL.
  */
-int avl_search(AVL tree, void* value);
+void* avl_search(AVL tree, void* value);
 
 /**
  * Apply f to all values in avl tree. It is assumed f doesn't alter current order of values.
