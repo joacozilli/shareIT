@@ -41,8 +41,8 @@ handler_status_t file_transfer(fd_info fd) {
         }
     }
     nbytes = send(fd->fd_data->trans_info->client_fd, 
-                    fd->fd_data->trans_info->chunk_buffer + fd->fd_data->trans_info->chunk_amount_sent,
-                    fd->fd_data->trans_info->chunk_len - fd->fd_data->trans_info->chunk_amount_sent, 0);
+                  fd->fd_data->trans_info->chunk_buffer + fd->fd_data->trans_info->chunk_amount_sent,
+                  fd->fd_data->trans_info->chunk_len - fd->fd_data->trans_info->chunk_amount_sent, 0);
     
     if (nbytes < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -54,9 +54,13 @@ handler_status_t file_transfer(fd_info fd) {
     }
     fd->fd_data->trans_info->chunk_amount_sent += nbytes;
     return DOWNLOAD_REQUEST;
-
 }
 
+
+handler_status_t download_request(char* filename, file_info fd, conc_AVL files) {
+
+
+}
 
 handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info) {
     int nbytes;
@@ -109,6 +113,11 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
             fd->fd_data->trans_info = trans;
             fd->type = FILE_TRANSFER;
             return DOWNLOAD_REQUEST;
+        }
+        else if (array_size(arr) == 2 && !strcoll(array_idx(arr, 0), "SEARCH_REQUEST")) {
+            handler_status_t ret = download_request(array_idx(arr, 1), fd, srv_info->files);
+            array_destroy(arr);
+            return ret;
         }
 
         break;
@@ -182,7 +191,6 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         break;
     case CLEANUP_TIMEOUT:
         printf("cleanup event...\n");
-        buff;
         read(fd->fd_data->integer, (void*) &buff, 8);
         return TIMEOUT_OR_BROADCAST;   
         break;
@@ -190,6 +198,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
     default:
         break;
     }
+    return ERROR;
 }
 
 

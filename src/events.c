@@ -97,8 +97,7 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
         }
         for (int i = 0; i < eventsReady; i++) {
             fd_info fd = eventsQueue[i].data.ptr;
-            printf("event from fd %d, type %d\n", fd->fd_data->integer, fd->type);
-
+            
             if (fd->type == SOCKET_TCP_LISTENER) {
                 if (accept_client_connection(epfd, fd->fd_data->integer) < 0)
                     eprintf("unable to accept client connection in %s", __func__);

@@ -72,6 +72,7 @@ struct _server_info {
     int broadcast_port;
     char* hello_msg;
     conc_AVL peers;
+    conc_AVL files;
 };
 
 typedef struct _server_info* server_info;

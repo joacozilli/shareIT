@@ -4,6 +4,8 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include <dirent.h>
+
 #include <sys/types.h>
 #include <ifaddrs.h>
 #include <netinet/in.h>
@@ -15,36 +17,21 @@
 #include "src/data_structures/avl_tree/avl_tree.h"
 #include "src/data_structures/avl_concurrent/avl_concurrent.h"
 
+#include "utils.h"
 #include "events.h"
 #include "network.h"
 #include "server.h"
+#include "files.h"
 
 
 int main() {
 
-    struct ifaddrs* ifap;
-
-    int ret = getifaddrs(&ifap);
-    if (ret < 0)
-        printf("error with getifaddrs\n");
-    
-    for (struct ifaddrs* temp = ifap; temp != NULL; temp = temp->ifa_next) {
-        struct sockaddr_in* sa = (struct sockaddr_in *) temp->ifa_addr;
-        char* addr = inet_ntoa(sa->sin_addr);
-        printf("Interface: %s\tAddress: %s\n", temp->ifa_name, addr);
-    }
-
-    freeifaddrs(ifap);
-
     int srv_port = 60000;
     char* srv_ip = "192.168.1.77";
-
     int broadcast_port = 12345;
     char* broadcast_ip = "192.168.1.255";
-
     char* srv_name = "DESK-PC";
-
-    start_node(srv_port, srv_ip, broadcast_port, broadcast_ip, srv_name);
-
+    start_node(srv_port, srv_ip, broadcast_port, broadcast_ip, srv_name, "./share");
+    
     return 0;
 }
