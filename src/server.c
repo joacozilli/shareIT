@@ -24,8 +24,8 @@ handler_status_t file_transfer(fd_info fd) {
     int nbytes;
     if (fd->fd_data->trans_info->chunk_amount_sent == fd->fd_data->trans_info->chunk_len) {
         nbytes = read(fd->fd_data->trans_info->file_fd,
-                        fd->fd_data->trans_info->chunk_buffer,
-                        fd->fd_data->trans_info->chunk_len);
+                      fd->fd_data->trans_info->chunk_buffer,
+                      fd->fd_data->trans_info->chunk_len);
 
         fd->fd_data->trans_info->chunk_amount_sent = 0;
         if (nbytes == 0) {
@@ -57,8 +57,11 @@ handler_status_t file_transfer(fd_info fd) {
 }
 
 
-handler_status_t download_request(char* filename, file_info fd, conc_AVL files) {
 
+
+handler_status_t see_files_request(file_info fd, conc_AVL files) {
+    uint16_t msg_len;
+    uint16_t msg_len_network_order;
 
 }
 
@@ -71,6 +74,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
     Array arr;
     switch (fd->type) {
     case SOCKET_TCP_CLIENT:
+        // read header first
         nbytes = recv_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
         msg_len = ntohs(msg_len_network_order);
 
@@ -94,28 +98,38 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         
         if (array_size(arr) == 2 && !strcmp(array_idx(arr, 0), "DOWNLOAD_REQUEST")) {
             char* filename = array_idx(arr, 1);
-            if (0 /* file doesn't exist */) {
+            struct _file_info temp;
+            temp.name = filename;
+            file_info file = concurrent_avl_search(srv_info->files, &temp);
+            if (file == NULL) {
                 char msg[1024];
                 sprintf(msg, "NOT_FOUND %s", filename);
                 msg_len_network_order = htons(strlen(msg));
                 /* send header first */
                 send_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
                 send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
+                array_destroy(arr);
                 return CLIENT_CONTINUE_CONNECTION;
             }
+            
+            char path[1000];
+            snprintf(path, 1000, ".src/%s", filename);
+            int file_fd = open(path, O_RDONLY);
 
             transfer_info trans = malloc(sizeof (struct _transfer_info));
             trans->client_fd = fd->fd_data->integer;
-            trans->file_fd; // = open(FILEPATH,...) 
+
+            trans->file_fd = file_fd;
             trans->chunk_amount_sent = 0;
             trans->chunk_len = FILE_TRANSFER_CHUNK_SIZE;
             fd->fd_data = malloc(sizeof(union _fd_data));
             fd->fd_data->trans_info = trans;
             fd->type = FILE_TRANSFER;
+            array_destroy(arr);
             return DOWNLOAD_REQUEST;
         }
-        else if (array_size(arr) == 2 && !strcoll(array_idx(arr, 0), "SEARCH_REQUEST")) {
-            handler_status_t ret = download_request(array_idx(arr, 1), fd, srv_info->files);
+        else if (array_size(arr) == 1 && !strcoll(array_idx(arr, 0), "SEE_FILES_REQUEST")) {
+            handler_status_t ret = see_files_request(fd, srv_info->files);
             array_destroy(arr);
             return ret;
         }

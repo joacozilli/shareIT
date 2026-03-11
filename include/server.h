@@ -21,6 +21,11 @@
  */
 handler_status_t file_transfer(fd_info fd);
 
+/**
+ * function to handle see files requests. Called inside main_handler.
+ */
+handler_status_t see_files_request(fd_info fd, conc_AVL files);
+
 
 /**
  * Main handler of node. It handles clients's requests, hello messages and timeouts.
