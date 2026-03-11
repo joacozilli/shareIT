@@ -144,14 +144,14 @@ void avl_insert(AVL tree, void* value) {
 }
 
 
-int avl_search_aux(AVLNode T, void* value, functionCompareOrd cmp) {
+void* avl_search_aux(AVLNode T, void* value, functionCompareOrd cmp) {
     if (T == NULL)
-        return 0;
+        return NULL;
 
     int res = cmp(T->value, value);
 
     if (res == 0)
-        return 1;
+        return T->value;
     
     if (res > 0)
         return avl_search_aux(T->left, value, cmp);
@@ -160,7 +160,7 @@ int avl_search_aux(AVLNode T, void* value, functionCompareOrd cmp) {
         return avl_search_aux(T->right, value, cmp);
 }
 
-int avl_search(AVL tree, void* value) {
+void* avl_search(AVL tree, void* value) {
     if(!tree) {
         eprintf("avl tree given is NULL in %s\n", __func__);
         return -1;
@@ -216,9 +216,7 @@ AVLNode map_aux(AVLNode T, functionMap f) {
         return NULL;
     T->left = map_aux(T->left, f);
     T->right = map_aux(T->right, f);
-    void* temp = T->value;
     T->value = f(T->value);
-    free(temp);
     return T;
 }
 

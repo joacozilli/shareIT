@@ -25,13 +25,14 @@ conc_AVL concurrent_avl_create(functionCopy copy, functionCompareOrd cmp, functi
 void concurrent_avl_insert(conc_AVL ctree, void* value);
 
 /**
- * Return 1 if value is in tree, otherwise 0.
+ * Return pointer to value if it is in tree, otherwise NULL.
  */
-int concurrent_avl_search(conc_AVL ctree, void* value);
+void* concurrent_avl_search(conc_AVL ctree, void* value);
 
 /**
  * Apply f to all values in concurrent avl tree. It is assumed f doesn't alter current order of values.
- * That is, for all a,b,c in the tree, if a < b < c then f(a) < f(b) < f(c)
+ * That is, for all a,b,c in the tree, if a < b < c then f(a) < f(b) < f(c). It is also assumed
+ * f doesn't change the type of values.
  */
 void concurrent_avl_map(conc_AVL ctree, functionMap f);
 
