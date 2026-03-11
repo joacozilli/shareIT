@@ -22,7 +22,7 @@ void* file_info_copy(void* f) {
 int file_info_compare(void* f1, void* f2) {
     file_info ff1 = (file_info) f1;
     file_info ff2 = (file_info) f2;
-    return strcmp(ff1->path, ff2->path);
+    return strcmp(ff1->name, ff2->name);
 }
 
 
@@ -67,3 +67,4 @@ conc_AVL get_files(char* dir) {
     }
     return t;
 }
+
