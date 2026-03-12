@@ -53,6 +53,18 @@ void* concurrent_avl_search(conc_AVL ctree, void* value) {
 
 }
 
+void* concurrent_avl_search_by(conc_AVL ctree, void* value, functionCompareOrd cmp) {
+    if (!ctree) {
+        eprintf("argument tree given is NULL in %s", __func__);
+        return NULL;
+    }
+
+    pthread_mutex_lock(&ctree->mutex);
+    void* res = avl_search_by(ctree->tree, value, cmp);
+    pthread_mutex_unlock(&ctree->mutex);
+    return res;   
+}
+
 
 void concurrent_avl_delete(conc_AVL ctree, void* value) {
     if (!ctree) {

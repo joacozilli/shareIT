@@ -43,6 +43,12 @@ void avl_insert(AVL tree, void* value);
 void* avl_search(AVL tree, void* value);
 
 /**
+ * The same as avl_search, but the search criteria used is given as argument instead
+ * of using the compare function specified during avl creation.
+ */
+void* avl_search_by(AVL tree, void* value, functionCompareOrd cmp);
+
+/**
  * Apply f to all values in avl tree. It is assumed f doesn't alter current order of values.
  * That is, for all a,b,c in the tree, if a < b < c then f(a) < f(b) < f(c). It is also assumed
  * f doesn't change the type of values.

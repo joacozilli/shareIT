@@ -30,6 +30,12 @@ void concurrent_avl_insert(conc_AVL ctree, void* value);
 void* concurrent_avl_search(conc_AVL ctree, void* value);
 
 /**
+ * The same as avl_search, but the search criteria used is given as argument instead
+ * of using the compare function specified during avl creation.
+ */
+void* concurrent_avl_search_by(conc_AVL ctree, void* value, functionCompareOrd cmp);
+
+/**
  * Apply f to all values in concurrent avl tree. It is assumed f doesn't alter current order of values.
  * That is, for all a,b,c in the tree, if a < b < c then f(a) < f(b) < f(c). It is also assumed
  * f doesn't change the type of values.
