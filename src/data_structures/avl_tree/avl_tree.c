@@ -156,8 +156,7 @@ void* avl_search_aux(AVLNode T, void* value, functionCompareOrd cmp) {
     if (res > 0)
         return avl_search_aux(T->left, value, cmp);
 
-    if (res < 0)
-        return avl_search_aux(T->right, value, cmp);
+    return avl_search_aux(T->right, value, cmp);
 }
 
 void* avl_search(AVL tree, void* value) {
