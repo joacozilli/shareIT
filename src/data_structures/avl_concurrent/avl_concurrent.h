@@ -34,7 +34,7 @@ void* concurrent_avl_search(conc_AVL ctree, void* value);
  * That is, for all a,b,c in the tree, if a < b < c then f(a) < f(b) < f(c). It is also assumed
  * f doesn't change the type of values.
  */
-void concurrent_avl_map(conc_AVL ctree, functionMap f);
+void concurrent_avl_map(conc_AVL ctree, functionMap f, void* context);
 
 /**
  * Delete value from concurrent avl tree.

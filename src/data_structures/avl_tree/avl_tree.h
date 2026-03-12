@@ -47,7 +47,7 @@ void* avl_search(AVL tree, void* value);
  * That is, for all a,b,c in the tree, if a < b < c then f(a) < f(b) < f(c). It is also assumed
  * f doesn't change the type of values.
  */
-void avl_map(AVL tree, functionMap f);
+void avl_map(AVL tree, functionMap f, void* context);
 
 /**
  * Delete value from avl tree.

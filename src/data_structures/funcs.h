@@ -28,9 +28,10 @@ typedef void (*functionDelete)(void* value);
 typedef void (*functionPrint)(void* value);
 
 /**
- * Must return value of the same type.
+ * Must return value of the same type. Context argument is to optionally
+ * pass extra data to the function.
  */
-typedef void* (*functionMap)(void* value);
+typedef void* (*functionMap)(void* value, void* context);
 
 /**
  * Must return a hash value for value.

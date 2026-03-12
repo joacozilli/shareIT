@@ -28,14 +28,14 @@ void concurrent_avl_insert(conc_AVL ctree, void* value) {
     pthread_mutex_unlock(&ctree->mutex);
 }
 
-void concurrent_avl_map(conc_AVL ctree, functionMap f) {
+void concurrent_avl_map(conc_AVL ctree, functionMap f, void* context) {
     if (!ctree) {
         eprintf("argument tree given is NULL in %s", __func__);
         return;
     }
 
     pthread_mutex_lock(&ctree->mutex);
-    avl_map(ctree->tree, f);
+    avl_map(ctree->tree, f, context);
     pthread_mutex_unlock(&ctree->mutex);
 }
 
