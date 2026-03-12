@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <sys/types.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
@@ -56,10 +57,65 @@ handler_status_t file_transfer(fd_info fd) {
     return DOWNLOAD_REQUEST;
 }
 
+/**
+ * Function to be used in see_file_request for mapping the avl tree of files.
+ */
+void* send_file_name(void* value, void* context) {
+    file_info file = (file_info) value;
+    fd_info fd = (fd_info) context;
 
+    char msg[1024];
+    snprintf(msg, 1024, "%s %ld", file->name, file->size);
+
+    u_int16_t msg_len = strlen(msg);
+    u_int16_t msg_len_network_order = htons(msg_len);
+    send_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
+    send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
+
+    return value;
+}
 
 handler_status_t see_files_request(fd_info fd, conc_AVL files) {
-    return CLIENT_CONTINUE_CONNECTION;
+    concurrent_avl_map(files, send_file_name, (void*) fd);
+    return CLIENT_CLOSE_CONNECTION;
+}
+
+
+
+handler_status_t download_request(fd_info fd, conc_AVL files, char* filename) {
+    u_int16_t msg_len_network_order;
+    char msg[1024];
+    struct _file_info temp;
+    temp.name = filename;
+    file_info file = concurrent_avl_search(files, &temp);
+    if (file == NULL) {
+        snprintf(msg, 1024, "NOT_FOUND %s", filename);
+        msg_len_network_order = htons(strlen(msg));
+        send_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
+        send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
+        return CLIENT_CONTINUE_CONNECTION;
+    }
+
+    sprintf(msg, "FOUND %s", filename);
+    msg_len_network_order = htons(strlen(msg));
+
+    send_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
+    send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
+
+    char path[1024];
+    snprintf(path, 1024, ".src/%s", filename);
+    int file_fd = open(path, O_RDONLY);
+
+    transfer_info trans = malloc(sizeof (struct _transfer_info));
+    trans->client_fd = fd->fd_data->integer;
+
+    trans->file_fd = file_fd;
+    trans->chunk_amount_sent = 0;
+    trans->chunk_len = FILE_TRANSFER_CHUNK_SIZE;
+    fd->fd_data = malloc(sizeof(union _fd_data));
+    fd->fd_data->trans_info = trans;
+    fd->type = FILE_TRANSFER;;
+    return DOWNLOAD_REQUEST;  
 }
 
 handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info) {
@@ -72,8 +128,11 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
     switch (fd->type) {
     case SOCKET_TCP_CLIENT:
         // read header first
+        printf("i received a tcp message from a client!!\n");
         nbytes = recv_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
+        printf("i read %d bytes\n", nbytes);
         msg_len = ntohs(msg_len_network_order);
+        printf("the message said i must read %d bytes\n", msg_len);
 
         if (nbytes <= 0 || msg_len <= 0)
             return CLIENT_CLOSE_CONNECTION;
@@ -87,6 +146,8 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         nbytes = recv_tcp_message(fd->fd_data->integer, buffer, nbytes);
         if (nbytes <= 0)
             return CLIENT_CLOSE_CONNECTION;
+        
+        printf("message received: %s\n", buffer);
 
         arr = parse_input(buffer, " ");
         if (arr == NULL)
@@ -94,43 +155,11 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         
         
         if (array_size(arr) == 2 && !strcmp(array_idx(arr, 0), "DOWNLOAD_REQUEST")) {
-            char* filename = array_idx(arr, 1);
-            char msg[1024];
-            struct _file_info temp;
-            temp.name = filename;
-            file_info file = concurrent_avl_search(srv_info->files, &temp);
-            if (file == NULL) {
-                sprintf(msg, "NOT_FOUND %s", filename);
-                msg_len_network_order = htons(strlen(msg));
-                /* send header first */
-                send_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
-                send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
-                array_destroy(arr);
-                return CLIENT_CONTINUE_CONNECTION;
-            }
-
-            sprintf(msg, "FOUND %s", filename);
-            msg_len_network_order = htons(strlen(msg));
-
-            send_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
-            send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
-
-            char path[1000];
-            snprintf(path, 1000, ".src/%s", filename);
-            int file_fd = open(path, O_RDONLY);
-
-            transfer_info trans = malloc(sizeof (struct _transfer_info));
-            trans->client_fd = fd->fd_data->integer;
-
-            trans->file_fd = file_fd;
-            trans->chunk_amount_sent = 0;
-            trans->chunk_len = FILE_TRANSFER_CHUNK_SIZE;
-            fd->fd_data = malloc(sizeof(union _fd_data));
-            fd->fd_data->trans_info = trans;
-            fd->type = FILE_TRANSFER;
+            handler_status_t ret = download_request(fd, srv_info->files, array_idx(arr,1));
             array_destroy(arr);
-            return DOWNLOAD_REQUEST;
+            return ret;
         }
+
         else if (array_size(arr) == 1 && !strcoll(array_idx(arr, 0), "SEE_FILES_REQUEST")) {
             handler_status_t ret = see_files_request(fd, srv_info->files);
             array_destroy(arr);

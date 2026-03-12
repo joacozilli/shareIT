@@ -26,6 +26,11 @@ handler_status_t file_transfer(fd_info fd);
  */
 handler_status_t see_files_request(fd_info fd, conc_AVL files);
 
+/**
+ * function to handle download requests. Called inside main_handler.
+ */
+handler_status_t download_request(fd_info fd, conc_AVL files, char* filename);
+
 
 /**
  * Main handler of node. It handles clients's requests, hello messages and timeouts.
