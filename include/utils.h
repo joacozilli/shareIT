@@ -11,12 +11,11 @@
 // mutex for printing error messages
 extern pthread_mutex_t eprintf_mutex;
 
-extern FILE *eprintf_file;
 
 // macro for printing errors on stderr. Thread safe.
 #define eprintf(fmt,...) { \
     pthread_mutex_lock(&eprintf_mutex); \
-    fprintf(eprintf_file, fmt, __VA_ARGS__); \
+    fprintf(stderr, fmt, __VA_ARGS__); \
     pthread_mutex_unlock(&eprintf_mutex); \
 }
 

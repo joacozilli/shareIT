@@ -189,7 +189,6 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
             p.port = port;
             p.tolerance = 0;
             concurrent_avl_insert(srv_info->peers, (void*) &p);
-            concurrent_avl_print(srv_info->peers);
         }
         array_destroy(arr);
         return TIMEOUT_OR_BROADCAST;
