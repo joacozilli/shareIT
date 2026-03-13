@@ -71,6 +71,7 @@ int accept_client_connection(int epfd, int srvSock) {
     fcntl(clientfd, F_SETFL, flags | O_NONBLOCK);
 
     fd_info sockInf = malloc(sizeof(struct _fd_info));
+    sockInf->fd_data = malloc(sizeof(union _fd_data));
     sockInf->fd_data->integer = clientfd;
     sockInf->type = SOCKET_TCP_CLIENT;
     struct epoll_event event;
@@ -83,6 +84,7 @@ int accept_client_connection(int epfd, int srvSock) {
         errnoprintf("epoll_ctl in %s (unable to add client to epoll)", __func__);
         return -1;
     }
+    printf("new client accepted!!\n");
     return 0;
 }
 
@@ -99,6 +101,7 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
             fd_info fd = eventsQueue[i].data.ptr;
             
             if (fd->type == SOCKET_TCP_LISTENER) {
+                printf("event for server tcp listening socket!! trying to accept connection...\n");
                 if (accept_client_connection(epfd, fd->fd_data->integer) < 0)
                     eprintf("unable to accept client connection in %s", __func__);
                 struct epoll_event srvEvent;

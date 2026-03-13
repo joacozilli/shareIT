@@ -192,6 +192,8 @@ int recv_tcp_message(int fd, void* buffer, size_t len) {
     while (total < len) {
         int nbytes = recv(fd, buffer+total, len - total, 0);
         if (nbytes < 0) {
+            if (errno == EWOULDBLOCK || errno == EAGAIN)
+                continue;
             errnoprintf("recv in %s", __func__);
             return -1;
         }

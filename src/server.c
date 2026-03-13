@@ -19,6 +19,7 @@
 #include "peer.h"
 #include "avl_concurrent.h"
 #include "files.h"
+#include "cli.h"
 
 
 handler_status_t file_transfer(fd_info fd) {
@@ -77,6 +78,7 @@ void* send_file_name(void* value, void* context) {
 
 handler_status_t see_files_request(fd_info fd, conc_AVL files) {
     concurrent_avl_map(files, send_file_name, (void*) fd);
+    send_tcp_message(fd->fd_data->integer, (char*) END_OF_REQUEST, HEADER_LENGTH);
     return CLIENT_CLOSE_CONNECTION;
 }
 
@@ -160,7 +162,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
             return ret;
         }
 
-        else if (array_size(arr) == 1 && !strcoll(array_idx(arr, 0), "SEE_FILES_REQUEST")) {
+        else if (array_size(arr) == 1 && !strcoll(array_idx(arr, 0), PEEK_REQUEST_MSG)) {
             handler_status_t ret = see_files_request(fd, srv_info->files);
             array_destroy(arr);
             return ret;
@@ -171,7 +173,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
     case SOCKET_UDP:
         nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
 
-        printf("udp msg received: %s\n", buffer);
+        eprintf("udp msg received: %s\n", buffer);
         Array arr = parse_input(buffer, " ");
         if (arr == NULL)
             return TIMEOUT_OR_BROADCAST;
@@ -212,7 +214,6 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         break;
 
     case SEND_HELLO_TIMEOUT:
-        printf("sending hello event...\n");
         u_int64_t buff;
         if (read(fd->fd_data->integer, (void*) &buff, 8) < 0) {
             errnoprintf("read in %s", __func__);
@@ -236,7 +237,6 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         return TIMEOUT_OR_BROADCAST;
         break;
     case CLEANUP_TIMEOUT:
-        printf("cleanup event...\n");
         read(fd->fd_data->integer, (void*) &buff, 8);
         return TIMEOUT_OR_BROADCAST;   
         break;
@@ -282,10 +282,14 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
     create_hello_timeout(epfd);
     create_cleanup_timeout(epfd);
 
-    // start working threads
+
+    cli_args cli_args = malloc(sizeof(struct _cli_args));
+    cli_args->peers = srv_info->peers;
+    cli_args->files = srv_info->files;
+    pthread_t cli_thread;
+    pthread_create(&cli_thread, NULL, start_cli, cli_args);
 
     wait_epoll_events(epfd, srv_info, main_handler);
-
     close(srvSocket);
     close(udpSocket);
     close(epfd);

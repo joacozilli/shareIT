@@ -18,7 +18,7 @@ typedef enum {
     CLIENT_CONTINUE_CONNECTION,   // the event was from a client, it was completed and the client will continue the connection.
     CLIENT_CLOSE_CONNECTION,      // the event was from a client, it was completed and the client closed connection.
     DOWNLOAD_REQUEST,             // the event was a download request (either new or in progress already). Rearm file descriptor into epoll appropriately.
-    TIMEOUT_OR_BROADCAST,         // the event was a timeout or udp broadcast. Rearm socket normally.
+    TIMEOUT_OR_BROADCAST,         // the event was a timeout or udp broadcast. Rearm file descriptor normally.
     ERROR,                        // critical error when handling event, close and remove file descriptor.
 } handler_status_t;
 
@@ -27,8 +27,8 @@ typedef enum {
 typedef enum {
     SOCKET_TCP_LISTENER, 
     SOCKET_TCP_CLIENT,
-    FILE_TRANSFER,
     SOCKET_UDP,
+    FILE_TRANSFER,
     SEND_HELLO_TIMEOUT,
     CLEANUP_TIMEOUT
 } fd_type;

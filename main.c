@@ -26,6 +26,7 @@
 
 int main() {
 
+    eprintf_file = fopen("log.txt", "a");
     int srv_port = 60000;
     char* srv_ip = "192.168.1.77";
     int broadcast_port = 12345;

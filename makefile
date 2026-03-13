@@ -16,6 +16,7 @@ SRC = \
 	src/events.c \
 	src/server.c \
 	src/files.c \
+	src/cli.c \
 	main.c
 
 # compile program

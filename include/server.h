@@ -10,11 +10,16 @@
  */
 #define HEADER_LENGTH 2
 
+// if header stores this value, the receiver knows the request has been completed.
+#define END_OF_REQUEST 0xffff
+
 /**
  * If node has an error when broadcasting a hello message, it shall try again this amount at most.
  */
 #define MAX_HELLO_ATTEMPTS 3
 
+
+#define PEEK_REQUEST_MSG "PEEK_REQUEST"
 
 /**
  * function to handle a file transfer. Called inside main_handler whenever the event is a file transfer.

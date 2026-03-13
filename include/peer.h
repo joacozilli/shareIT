@@ -5,9 +5,9 @@
 
 struct _peer {
     char* name;
-     char* ip;
-     int port;
-     int tolerance;
+    char* ip;
+    int port;
+    int tolerance;
 };
 typedef struct _peer* peer;
 
@@ -20,6 +20,11 @@ void* peer_copy(void* p);
  * Return 0 if equals, < 0 if p1 < p2 and > 0 if p1 > p2.
  */
 int peer_compare(void* p1, void* p2);
+
+/**
+ * The same as peer_compare, but it only compares the names.
+ */
+int peer_compare_names(void* p1, void* p2);
 
 /**
  * delete peer from memory.

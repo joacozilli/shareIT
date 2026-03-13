@@ -33,6 +33,12 @@ int peer_compare(void* p1, void* p2) {
     return 1;
 }
 
+int peer_compare_names(void* p1, void* p2) {
+    peer pp1 = (peer) p1;
+    peer pp2 = (peer) p2;
+    return strcmp(pp1->name, pp2->name);
+}
+
 void peer_delete(void* p) {
     peer pp = (peer) p;
     free(pp->ip);
