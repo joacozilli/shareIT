@@ -129,12 +129,9 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
     Array arr;
     switch (fd->type) {
     case SOCKET_TCP_CLIENT:
-        // read header first
-        printf("i received a tcp message from a client!!\n");
+
         nbytes = recv_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
-        printf("i read %d bytes\n", nbytes);
         msg_len = ntohs(msg_len_network_order);
-        printf("the message said i must read %d bytes\n", msg_len);
 
         if (nbytes <= 0 || msg_len <= 0)
             return CLIENT_CLOSE_CONNECTION;
@@ -148,8 +145,6 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         nbytes = recv_tcp_message(fd->fd_data->integer, buffer, nbytes);
         if (nbytes <= 0)
             return CLIENT_CLOSE_CONNECTION;
-        
-        printf("message received: %s\n", buffer);
 
         arr = parse_input(buffer, " ");
         if (arr == NULL)
@@ -194,7 +189,6 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
             p.port = port;
             p.tolerance = 0;
             concurrent_avl_insert(srv_info->peers, (void*) &p);
-            printf("I found a new peer!!\n");
             concurrent_avl_print(srv_info->peers);
         }
         array_destroy(arr);
@@ -254,7 +248,6 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
 
     int epfd = create_srv_epoll(srvSocket, udpSocket);
 
-    printf("srvSocket: %d, udpSocket: %d, epfd: %d\n", srvSocket, udpSocket, epfd);
 
     server_info srv_info = malloc(sizeof(struct _server_info));
     srv_info->srv_name = srv_name;
