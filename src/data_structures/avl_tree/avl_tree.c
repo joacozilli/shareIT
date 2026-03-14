@@ -1,5 +1,5 @@
 #include "avl_tree.h"
-#include "utils.h"
+#include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -137,7 +137,7 @@ AVLNode insert_aux(AVLNode T, void* value, functionCompareOrd cmp, functionCopy 
 
 void avl_insert(AVL tree, void* value) {
     if (!tree) {
-        eprintf("avl tree given is NULL in %s\n", __func__);
+        log_error("avl tree given is NULL");
         return;
     }
     tree->root = insert_aux(tree->root, value, tree->cmp, tree->copy, tree->del);
@@ -161,7 +161,7 @@ void* avl_search_aux(AVLNode T, void* value, functionCompareOrd cmp) {
 
 void* avl_search(AVL tree, void* value) {
     if(!tree) {
-        eprintf("avl tree given is NULL in %s\n", __func__);
+        log_error("avl tree given is NULL");
         return NULL;
     }
     return avl_search_aux(tree->root, value, tree->cmp);
@@ -171,7 +171,7 @@ void* avl_search(AVL tree, void* value) {
 
 void* avl_search_by(AVL tree, void* value, functionCompareOrd cmp) {
     if(!tree) {
-        eprintf("avl tree given is NULL in %s\n", __func__);
+        log_error("avl tree given is NULL");
         return NULL;
     }
     return avl_search_aux(tree->root, value, cmp);
@@ -212,7 +212,7 @@ void print_aux(AVLNode T, functionPrint print) {
 
 void avl_print(AVL tree) {
     if (!tree) {
-        eprintf("avl tree given is NULL in %s\n", __func__);
+        log_error("avl tree given is NULL");
         return;
     }
     if (!tree->print)
@@ -231,7 +231,7 @@ AVLNode map_aux(AVLNode T, functionMap f, void* context) {
 
 void avl_map(AVL tree, functionMap f, void* context) {
     if (!tree) {
-        eprintf("avl tree given is NULL in %s\n", __func__);
+        log_error("avl tree given is NULL");
         return;
     }
     tree->root = map_aux(tree->root, f, context);

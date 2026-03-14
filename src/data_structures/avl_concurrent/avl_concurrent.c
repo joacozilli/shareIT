@@ -1,5 +1,5 @@
 #include "avl_concurrent.h"
-#include "utils.h"
+#include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -19,7 +19,7 @@ conc_AVL concurrent_avl_create(functionCopy copy, functionCompareOrd cmp, functi
 
 void concurrent_avl_insert(conc_AVL ctree, void* value) {
     if (!ctree) {
-        eprintf("argument tree given is NULL in %s", __func__);
+        log_error("avl tree given is NULL");
         return;
     }
 
@@ -30,7 +30,7 @@ void concurrent_avl_insert(conc_AVL ctree, void* value) {
 
 void concurrent_avl_map(conc_AVL ctree, functionMap f, void* context) {
     if (!ctree) {
-        eprintf("argument tree given is NULL in %s", __func__);
+        log_error("avl tree given is NULL");
         return;
     }
 
@@ -42,7 +42,7 @@ void concurrent_avl_map(conc_AVL ctree, functionMap f, void* context) {
 
 void* concurrent_avl_search(conc_AVL ctree, void* value) {
     if (!ctree) {
-        eprintf("argument tree given is NULL in %s", __func__);
+        log_error("avl tree given is NULL");
         return NULL;
     }
 
@@ -55,7 +55,7 @@ void* concurrent_avl_search(conc_AVL ctree, void* value) {
 
 void* concurrent_avl_search_by(conc_AVL ctree, void* value, functionCompareOrd cmp) {
     if (!ctree) {
-        eprintf("argument tree given is NULL in %s", __func__);
+        log_error("avl tree given is NULL");
         return NULL;
     }
 
@@ -68,7 +68,7 @@ void* concurrent_avl_search_by(conc_AVL ctree, void* value, functionCompareOrd c
 
 void concurrent_avl_delete(conc_AVL ctree, void* value) {
     if (!ctree) {
-        eprintf("argument tree given is NULL in %s", __func__);
+        log_error("avl tree given is NULL");
         return;
     }
 
@@ -91,7 +91,7 @@ void concurrent_avl_destroy(conc_AVL ctree) {
 
 void concurrent_avl_print(conc_AVL ctree) {
     if (!ctree) {
-        eprintf("argument tree given is NULL in %s", __func__);
+        log_error("avl tree given is NULL");
         return;
     }
 
