@@ -153,12 +153,14 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         
         
         if (array_size(arr) == 2 && !strcmp(array_idx(arr, 0), "DOWNLOAD_REQUEST")) {
+            log_info("download request received");
             handler_status_t ret = download_request(fd, srv_info->files, array_idx(arr,1));
             array_destroy(arr);
             return ret;
         }
 
         else if (array_size(arr) == 1 && !strcoll(array_idx(arr, 0), PEEK_REQUEST_MSG)) {
+            log_info("peek request received");
             handler_status_t ret = see_files_request(fd, srv_info->files);
             array_destroy(arr);
             return ret;

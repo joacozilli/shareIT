@@ -47,7 +47,8 @@ void cmd_peek(char* peer_name, conc_AVL peers) {
         return;
     }
 
-    int msg_len, msg_len_network_order, nbytes;
+    uint16_t msg_len, msg_len_network_order;
+    int nbytes;
     char* msg = PEEK_REQUEST_MSG;
     msg_len = strlen(msg);
     msg_len_network_order = htons(msg_len);

@@ -32,7 +32,7 @@ int main() {
         return 1;
     }
 
-    int srv_port = 00;
+    int srv_port = 60000;
     char* srv_ip = "192.168.1.77";
     int broadcast_port = 12345;
     char* broadcast_ip = "192.168.1.255";
