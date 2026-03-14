@@ -1,6 +1,6 @@
 #define _POSIX_C_SOURCE 199309L
 #include "events.h"
-#include "utils.h"
+#include "log.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,7 +24,7 @@ int create_srv_epoll(int srvSock, int udpSock) {
 
     int epfd = epoll_create1(0);
     if (epfd < 0) {
-        errnoprintf("epoll_create1 in %s", __func__);
+        log_errno("error in epoll_create1");
         return -1;
     }
 
@@ -38,7 +38,7 @@ int create_srv_epoll(int srvSock, int udpSock) {
 
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, srvSock, &srvEvent) < 0) {
         close(epfd);
-        errnoprintf("epoll_ctl in %s", __func__);
+        log_errno("error in epoll_ctl");
         return -1;
     }
 
@@ -52,7 +52,7 @@ int create_srv_epoll(int srvSock, int udpSock) {
 
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, udpSock, &udpEvent) < 0) {
         close(epfd);
-        errnoprintf("epoll_ctl in %s", __func__);
+        log_errno("error in epoll_ctl");
         return -1;
     }
 
@@ -63,7 +63,7 @@ int create_srv_epoll(int srvSock, int udpSock) {
 int accept_client_connection(int epfd, int srvSock) {
     int clientfd = accept(srvSock, NULL, NULL);
     if (clientfd < 0){
-        errnoprintf("accept in %s", __func__);
+        log_errno("error in accept");
         return -1;
     }
     
@@ -81,7 +81,7 @@ int accept_client_connection(int epfd, int srvSock) {
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, clientfd, &event) < 0) {
         free(sockInf);
         close(clientfd);
-        errnoprintf("epoll_ctl in %s (unable to add client to epoll)", __func__);
+        log_errno("error in epoll_ctl");
         return -1;
     }
     return 0;
@@ -93,7 +93,7 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
         struct epoll_event eventsQueue[EPOLL_WAIT_MAX_EVENTS];
         int eventsReady = epoll_wait(epfd, eventsQueue, EPOLL_WAIT_MAX_EVENTS, -1);
         if (eventsReady < 0) {
-            errnoprintf("epoll_wait in %s", __func__);
+            log_errno("error in epoll_wait");
             return -1;
         }
         for (int i = 0; i < eventsReady; i++) {
@@ -101,11 +101,12 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
             
             if (fd->type == SOCKET_TCP_LISTENER) {
                 if (accept_client_connection(epfd, fd->fd_data->integer) < 0)
-                    eprintf("unable to accept client connection in %s", __func__);
+                    log_error("unable to accept client connection");
                 struct epoll_event srvEvent;
                 srvEvent.data.ptr = fd;
                 srvEvent.events = EPOLLIN | EPOLLONESHOT;
                 epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &srvEvent);
+                log_info("new client connection accepted");
                 continue;
             }
 
@@ -121,7 +122,7 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
                 if (epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &cliEvent) < 0) {
                     close(fd->fd_data->integer);
                     free(fd);
-                    errnoprintf("epoll_ctl in %s", __func__);
+                    log_errno("error in epoll_ctl");
                 }
                 break;
             
@@ -140,7 +141,7 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
                     close(fd->fd_data->trans_info->file_fd);
                     free(fd->fd_data->trans_info);
                     free(fd);
-                    errnoprintf("epoll_ctl in %s", __func__);
+                    log_errno("error in epoll_ctl");
                 }
                 break;
             
@@ -164,13 +165,13 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
 
 int create_hello_timeout(int epfd) {
     if (epfd < 0) {
-        eprintf("epoll file descriptor given is negative in %s", __func__);
+        log_error("file descriptor %d is non-positive");
         return -1;
     }
 
     int hellofd = timerfd_create(CLOCK_MONOTONIC, 0);
     if (hellofd < 0) {
-        errnoprintf("timerfd_create in %s", __func__);
+        log_errno("error in timerfd_create");
         return -1;
     }
 
@@ -181,7 +182,7 @@ int create_hello_timeout(int epfd) {
     tv.it_value.tv_nsec = 0;
 
     if (timerfd_settime(hellofd, 0, &tv, NULL) < 0) {
-        errnoprintf("timerfd_settime %s", __func__);
+        log_errno("error in timerfd_settime");
         close(hellofd);
         return -1;
     }
@@ -196,7 +197,7 @@ int create_hello_timeout(int epfd) {
     helloEvent.events = EPOLLIN | EPOLLONESHOT;
 
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, hellofd, &helloEvent) < 0) {
-        errnoprintf("epoll_ctl in %s", __func__);
+        log_errno("error in epoll_ctl");
         close(hellofd);
         free(hello);
         return -1;
@@ -207,13 +208,13 @@ int create_hello_timeout(int epfd) {
 
 int create_cleanup_timeout(int epfd) {
     if (epfd < 0) {
-        eprintf("epoll file descriptor given is negative in %s", __func__);
+        log_error("file descriptor %d is non-positive");
         return -1;
     }
 
     int cleanupfd = timerfd_create(CLOCK_MONOTONIC, 0);
     if (cleanupfd < 0) {
-        errnoprintf("timerfd_create in %s", __func__);
+        log_errno("error in timerfd_create");
         return -1;
     }
 
@@ -224,7 +225,7 @@ int create_cleanup_timeout(int epfd) {
     tv.it_value.tv_nsec = 0;
 
     if (timerfd_settime(cleanupfd, 0, &tv, NULL) < 0) {
-        errnoprintf("timerfd_settime %s", __func__);
+        log_errno("error in timerfd_settime");
         close(cleanupfd);
         return -1;
     }
@@ -239,7 +240,7 @@ int create_cleanup_timeout(int epfd) {
     cleanupEvent.events = EPOLLIN | EPOLLONESHOT;
 
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, cleanupfd, &cleanupEvent) < 0) {
-        errnoprintf("epoll_ctl in %s", __func__);
+        log_errno("error in epoll_ctl");
         close(cleanupfd);
         free(cleanup);
         return -1;

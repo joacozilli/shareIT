@@ -1,5 +1,5 @@
 #include "network.h"
-#include "utils.h"
+#include "log.h"
 
 #include <stdio.h> /* perror */
 #include <stdlib.h>
@@ -9,21 +9,21 @@
 #include <netinet/in.h>
 #include <arpa/inet.h> /* htons */
 #include <string.h> /* memset */
-
+#include <errno.h>
 
 
 int create_tcp_listener_socket(int port, const char *ip, unsigned int connectionLimit) {
     if (connectionLimit < 1) {
-        eprintf("%s: connection limit %d is non-positive\n", __func__, connectionLimit);
+        log_error("connection limit %d is non-positive", connectionLimit);
         return -1;
     }
     if (port < 1 || port > 65535) {
-        eprintf("%s: invalid port %d\n", __func__, port);
+        log_error("invalid port %d", port);
         return -1;
     }
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
-        errnoprintf("socket in %s", __func__);
+        log_errno("error with socket creation");
         return -1;
     }
 
@@ -34,7 +34,7 @@ int create_tcp_listener_socket(int port, const char *ip, unsigned int connection
     int opt = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof opt) < 0) {
         close(fd);
-        errnoprintf("setsockopt in %s", __func__);
+        log_errno("error in setsockopt");
         return -1;
     }
 
@@ -50,22 +50,22 @@ int create_tcp_listener_socket(int port, const char *ip, unsigned int connection
         if (ret != 1) {
             close(fd);
             if (ret == 0)
-                eprintf("inet_pton in %s: invalid ip %s\n", __func__, ip);
+                log_error("error in inet_piton: invalid ip %s", ip);
             if (ret == -1)
-                errnoprintf("inet_pton in %s", __func__);
+                log_errno("error in inet_piton");
             return -1;
         }
     }
 
     if (bind(fd, (struct sockaddr *)&sa, sizeof sa) < 0) {
         close(fd);
-        errnoprintf("bind in %s", __func__);
+        log_errno("error in bind");
         return -1;
     }
 
     if (listen(fd, connectionLimit) < 0) {
         close(fd);
-        errnoprintf("listen in %s", __func__);
+        log_errno("error in listen");
         return -1;
     }
     return fd;
@@ -74,12 +74,12 @@ int create_tcp_listener_socket(int port, const char *ip, unsigned int connection
 
 int create_tcp_client_socket(int port, const char* ip) {
  if (port < 1 || port > 65535) {
-        eprintf("%s: invalid port %d\n", __func__, port);
+        log_error("invalid port %d", port);
         return -1;
     }
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
-        errnoprintf("socket in %s", __func__);
+        log_errno("error with socket creation");
         return -1;
     }
 
@@ -91,15 +91,15 @@ int create_tcp_client_socket(int port, const char* ip) {
     if (ret != 1) {
         close(fd);
         if (ret == 0)
-            eprintf("inet_pton in %s: invalid ip %s\n", __func__, ip);
+            log_error("error in inet_piton: invalid ip %s", ip);
         if (ret == -1)
-            errnoprintf("inet_pton in %s", __func__);
+            log_errno("error in inet_piton");
         return -1;
     }
 
     if (connect(fd, (struct sockaddr*) &srv, sizeof srv) < 0) {
         close(fd);
-        errnoprintf("connect in %s", __func__);
+        log_errno("error in connect");
         return -1;
     }
     
@@ -109,12 +109,12 @@ int create_tcp_client_socket(int port, const char* ip) {
 
 int create_broadcast_udp_socket(int port, const char *ip) {
     if (port < 1 || port > 65535) {
-        eprintf("%s: invalid port %d,\n", __func__, port);
+        log_error("invalid port %d", port);
         return -1;
     }
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) {
-        errnoprintf("socket in %s", __func__);
+        log_errno("error with socket creation");
         return -1;
     }
 
@@ -129,11 +129,10 @@ int create_broadcast_udp_socket(int port, const char *ip) {
         int ret = inet_pton(AF_INET, ip, &sa.sin_addr);
         if (ret != 1) {
             close(fd);
-            if (ret == 0) {
-                eprintf("inet_pton in %s: invalid ip %s\n", __func__, ip);
-            }
+            if (ret == 0)
+                log_error("error in inet_piton: invalid ip %s", ip);
             else if (ret == -1)
-                errnoprintf("inet_pton in %s", __func__);
+                log_errno("error in inet_piton");
             return -1;
         }
     }
@@ -141,18 +140,18 @@ int create_broadcast_udp_socket(int port, const char *ip) {
     int opt = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof opt) < 0) {
         close(fd);
-        errnoprintf("setsockopt in %s", __func__);
+        log_errno("error in setsockopt");
         return -1;
     }
     if (setsockopt(fd, SOL_SOCKET, SO_BROADCAST, &opt, sizeof opt) < 0) {
         close(fd);
-        errnoprintf("setsockopt in %s", __func__);
+        log_errno("error in setsockopt");
         return -1;
     }
 
     if (bind(fd, (struct sockaddr*) &sa, sizeof sa) < 0) {
         close(fd);
-        errnoprintf("bind in %s", __func__);
+        log_errno("error in bind");
         return -1;
     }
 
@@ -162,7 +161,7 @@ int create_broadcast_udp_socket(int port, const char *ip) {
 
 int send_tcp_message(int fd, const void* msg, size_t size) {
     if (fd < 0) {
-        eprintf("file descriptor argument is negative in %s\n", __func__);
+        log_error("file descriptor %d is non-positive");
         return -1;
     }
 
@@ -171,7 +170,7 @@ int send_tcp_message(int fd, const void* msg, size_t size) {
         // msg_dontwait so it doesn't block
         int nbytes = send(fd, msg+total, size-total, MSG_DONTWAIT);
         if (nbytes < 0) {
-            errnoprintf("send in %s", __func__);
+            log_errno("error in send");
             return -1;
         }
         if(nbytes == 0)
@@ -184,7 +183,7 @@ int send_tcp_message(int fd, const void* msg, size_t size) {
 
 int recv_tcp_message(int fd, void* buffer, size_t len) {
     if (fd < 0) {
-        eprintf("file descriptor argument is negative in %s\n", __func__);
+        log_error("file descriptor %d is non-positive");
         return -1;
     }
 
@@ -194,7 +193,7 @@ int recv_tcp_message(int fd, void* buffer, size_t len) {
         if (nbytes < 0) {
             if (errno == EWOULDBLOCK || errno == EAGAIN)
                 continue;
-            errnoprintf("recv in %s", __func__);
+            log_errno("error in recv");
             return -1;
         }
         if (nbytes == 0) // peer closed connection orderly
@@ -207,7 +206,7 @@ int recv_tcp_message(int fd, void* buffer, size_t len) {
 
 int send_udp_mesage(int fd, const void* msg, size_t size, int port, const char* ip) {
     if (fd < 0) {
-        eprintf("file descriptor argument is negative in %s\n", __func__);
+        log_error("file descriptor %d is non-positive");
         return -1;
     }
 
@@ -217,7 +216,7 @@ int send_udp_mesage(int fd, const void* msg, size_t size, int port, const char* 
     inet_pton(AF_INET, ip, &dest.sin_addr);
 
     if (sendto(fd, msg, size, 0, (struct sockaddr*) &dest, sizeof dest) < 0) {
-        errnoprintf("sendto in %s", __func__);
+        log_errno("error in sendto");
         return -1;
     }
 
@@ -226,13 +225,13 @@ int send_udp_mesage(int fd, const void* msg, size_t size, int port, const char* 
 
 int recv_udp_message(int fd, void* buffer, size_t len) {
     if (fd < 0) {
-        eprintf("file descriptor argument is negative in %s\n", __func__);
+        log_error("file descriptor %d is non-positive");
         return -1;
     }
 
     int nbytes = recvfrom(fd, buffer, len, MSG_TRUNC, NULL, NULL);
     if (nbytes < 0) {
-        errnoprintf("recvfrom in %s", __func__);
+        log_errno("error in recvfrom");
         return -1;
     }
     return nbytes;
