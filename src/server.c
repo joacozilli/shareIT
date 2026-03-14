@@ -189,6 +189,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
             p.ip = ip;
             p.port = port;
             p.tolerance = 0;
+            log_info("received hello from %s %s %d", name, ip, port);
             concurrent_avl_insert(srv_info->peers, (void*) &p);
         }
         array_destroy(arr);
