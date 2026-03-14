@@ -168,6 +168,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
 
     case SOCKET_UDP:
         nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
+        buffer[nbytes] = '\0';
         
         Array arr = parse_input(buffer, " ");
         if (arr == NULL)
@@ -216,10 +217,10 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         int attempts = 0;
         send_hello_msg:
         int ret = send_udp_mesage(srv_info->udp_socket,
-                                 (void*) srv_info->hello_msg,
-                                 strlen(srv_info->hello_msg),
-                                 srv_info->broadcast_port,
-                                 srv_info->broadcast_ip);
+                                  srv_info->hello_msg,
+                                  strlen(srv_info->hello_msg),
+                                  srv_info->broadcast_port,
+                                  srv_info->broadcast_ip);
         attempts++;
         if (ret < 0) {
             if (attempts < MAX_HELLO_ATTEMPTS)

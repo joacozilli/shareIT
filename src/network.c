@@ -68,6 +68,7 @@ int create_tcp_listener_socket(int port, const char *ip, unsigned int connection
         log_errno("error in listen");
         return -1;
     }
+    log_info("created tcp listener socket at port %d, ip %s", port, ip);
     return fd;
 }
 
@@ -102,7 +103,7 @@ int create_tcp_client_socket(int port, const char* ip) {
         log_errno("error in connect");
         return -1;
     }
-    
+    log_info("created tcp socket connected at port %d, ip %s", port, ip);
     return fd;
 }
 
@@ -154,7 +155,7 @@ int create_broadcast_udp_socket(int port, const char *ip) {
         log_errno("error in bind");
         return -1;
     }
-
+    log_info("created udp socket for broadcast");
     return fd;
 }
 
