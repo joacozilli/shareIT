@@ -4,6 +4,7 @@
 #include <string.h>
 #include <arpa/inet.h>
 
+#include "log.h"
 #include "network.h"
 #include "server.h"
 #include "utils.h"
@@ -41,10 +42,11 @@ void cmd_peek(char* peer_name, conc_AVL peers) {
         return;
     }
     int newsocket = create_tcp_client_socket(ret->port, ret->ip);
-    if (newsocket) {
+    if (newsocket < 0) {
         printf("[ERROR] unable to connect to peer\n");
         return;
     }
+
     int msg_len, msg_len_network_order, nbytes;
     char* msg = PEEK_REQUEST_MSG;
     msg_len = strlen(msg);
@@ -58,6 +60,8 @@ void cmd_peek(char* peer_name, conc_AVL peers) {
         return;
     }
 
+    log_info("sent peek request to peer of name %s", peer_name);
+
     nbytes = recv_tcp_message(newsocket, (char*) &msg_len_network_order, HEADER_LENGTH);
     msg_len = ntohs(msg_len_network_order);
     Array files = array_create(100, str_copy, str_delete, str_print);
@@ -68,7 +72,9 @@ void cmd_peek(char* peer_name, conc_AVL peers) {
         nbytes = recv_tcp_message(newsocket, (char*) &msg_len_network_order, HEADER_LENGTH);
         msg_len = ntohs(msg_len_network_order);
     }
+    log_info("peek request to peer of name %s has been completed", peer_name);
     array_print(files);
+    array_destroy(files);
 }
 
 void cmd_download() {
