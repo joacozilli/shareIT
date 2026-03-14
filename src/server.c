@@ -14,6 +14,7 @@
 
 #include "network.h"
 #include "utils.h"
+#include "log.h"
 #include "array.h"
 #include "str.h"
 #include "peer.h"
@@ -50,7 +51,7 @@ handler_status_t file_transfer(fd_info fd) {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
             return DOWNLOAD_REQUEST;
         else {
-            errnoprintf("send in main_handler (error when sending chunk of file): %s", __func__);
+            log_errno("error with send (error when sending chunk of a file)");
             return ERROR;
         }
     }
@@ -167,8 +168,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
 
     case SOCKET_UDP:
         nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
-
-        eprintf("udp msg received: %s\n", buffer);
+        
         Array arr = parse_input(buffer, " ");
         if (arr == NULL)
             return TIMEOUT_OR_BROADCAST;
@@ -209,7 +209,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
     case SEND_HELLO_TIMEOUT:
         u_int64_t buff;
         if (read(fd->fd_data->integer, (void*) &buff, 8) < 0) {
-            errnoprintf("read in %s", __func__);
+            log_errno("error in read");
             return ERROR;
         }
 

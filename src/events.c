@@ -165,7 +165,7 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
 
 int create_hello_timeout(int epfd) {
     if (epfd < 0) {
-        log_error("file descriptor %d is non-positive");
+        log_error("file descriptor %d is non-positive", epfd);
         return -1;
     }
 
@@ -208,7 +208,7 @@ int create_hello_timeout(int epfd) {
 
 int create_cleanup_timeout(int epfd) {
     if (epfd < 0) {
-        log_error("file descriptor %d is non-positive");
+        log_error("file descriptor %d is non-positive", epfd);
         return -1;
     }
 

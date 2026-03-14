@@ -1,5 +1,5 @@
 #include "array.h"
-#include "utils.h"
+#include "log.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -11,10 +11,6 @@ Array array_create(unsigned int capacity, functionCopy copy, functionDelete del,
         return NULL;
     }
     Array arr = malloc(sizeof(struct _Array));
-    if (!arr) {
-        eprintf("NULL return by malloc in %s\n", __func__);
-        return NULL;
-    }
 
     arr->size = 0;
     arr->capacity = capacity;
@@ -30,11 +26,11 @@ Array array_create(unsigned int capacity, functionCopy copy, functionDelete del,
 
 void array_add(Array arr, void* value) {
     if (!arr) {
-        eprintf("array given is NULL in %s\n", __func__);
+        log_error("array given is NULL");
         return;
     }
     if (!value) {
-        eprintf("value given is NULL in %s\n", __func__);
+        log_error("value given is NULL");
         return;
     }
     arr->size++;
@@ -49,11 +45,11 @@ void array_add(Array arr, void* value) {
 
 void* array_idx(Array arr, unsigned int i) {
     if (!arr) {
-        eprintf("array given is NULL in %s\n", __func__);
+        log_error("array given is NULL");
         return NULL;
     }
     if (i >= arr->size) {
-        eprintf("index is larger than array size in %s", __func__);
+        log_error("index is larger than array size");
         return NULL;
     }
     return arr->elems[i];
@@ -62,7 +58,7 @@ void* array_idx(Array arr, unsigned int i) {
 
 unsigned int array_size(Array arr) {
     if (!arr) {
-        eprintf("array given is NULL in %s\n", __func__);
+        log_error("array given is NULL");
         return -1;
     }
     return arr->size;
@@ -70,7 +66,7 @@ unsigned int array_size(Array arr) {
 
 void array_destroy(Array arr) {
     if (!arr) {
-        eprintf("array given is NULL in %s\n", __func__);
+        log_error("array given is NULL");
         return;
     }
 
@@ -84,7 +80,7 @@ void array_destroy(Array arr) {
 
 void array_print(Array arr) {
     if (!arr) {
-        eprintf("array given is NULL in %s\n", __func__);
+        log_error("array given is NULL");
         return;
     }
     if(!arr->print)

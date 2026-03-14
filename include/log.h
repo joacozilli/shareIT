@@ -12,7 +12,7 @@ extern pthread_mutex_t log_mutex;
  * and is only MT-safe in glibc >= 2.32). Store the string describing errno value
  * in the passed buffer. Return 0 on success, otherwise non zero.
  */
-int safe_strerror(char* errbuff, size_t bufflen);
+int safe_strerror(char* errbuff, size_t bufflen, int saved_errno);
 
 
 void log_error_impl(const char *file, int line, const char *func,

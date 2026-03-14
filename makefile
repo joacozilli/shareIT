@@ -7,6 +7,7 @@ CONFIG_FILE_PATH = "config.json"
 
 SRC = \
 	src/utils.c \
+	src/log.c \
 	src/str.c \
 	src/data_structures/array/array.c \
 	src/data_structures/avl_tree/avl_tree.c \

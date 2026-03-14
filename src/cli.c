@@ -120,6 +120,8 @@ void* start_cli(void* arg) {
         if (len == 0)
             continue;
         Array input = parse_input(buffer, " ");
+        if (input == NULL)
+            continue;
         run_command(input, s);
         array_destroy(input);
     }

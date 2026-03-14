@@ -22,7 +22,7 @@ extern pthread_mutex_t eprintf_mutex;
 // macro for printing errors on stderr using errno. Thread safe.
 #define errnoprintf(fmt, ...) { \
     char _errbuf[256]; \
-    safe_strerror(_errbuf, sizeof _errbuf); \
+    safe_strerror1(_errbuf, sizeof _errbuf); \
     eprintf(fmt, ##__VA_ARGS__); \
     eprintf(": %s\n", _errbuf); \
 }
@@ -32,7 +32,7 @@ extern pthread_mutex_t eprintf_mutex;
  * and is only MT-safe in glibc >= 2.32). Store the string describing errno value
  * in the passed buffer. Return 0 on success, otherwise non zero.
  */
-int safe_strerror(char* errbuff, size_t bufflen);
+int safe_strerror1(char* errbuff, size_t bufflen);
 
 /**
  * Parse string input into tokens based on delim and return array with the tokens.

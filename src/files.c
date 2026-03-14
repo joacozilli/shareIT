@@ -1,5 +1,6 @@
 #include "files.h"
 #include "utils.h"
+#include "log.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -44,7 +45,7 @@ conc_AVL get_files(char* dir) {
     struct dirent *dp;
     DIR* opened = opendir(dir);
     if (!opened) {
-        errnoprintf("opendir in %s", __func__);
+        log_errno("error in opendir");
         return NULL;
     } 
     conc_AVL t = concurrent_avl_create(file_info_copy, file_info_compare, file_info_delete, file_info_print);
@@ -54,7 +55,7 @@ conc_AVL get_files(char* dir) {
         sprintf(path, "%s/%s", dir, dp->d_name);
         struct stat st;
         if(stat(path, &st) < 0) {
-            errnoprintf("stat in %s (regarding file %s)", __func__, dp->d_name);
+            log_errno("error in stat (regarding file %s)", dp->d_name);
             continue;
         }
         if (S_ISREG(st.st_mode)) {

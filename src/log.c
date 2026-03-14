@@ -2,20 +2,21 @@
 #include <stdarg.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 FILE *log_file = NULL;
 pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
 
-int safe_strerror(char* errbuff, size_t bufflen) {
+int safe_strerror(char* errbuff, size_t bufflen, int saved_errno) {
     #if defined(__GLIBC__) && defined(_GNU_SOURCE)
         /* GNU-specific */
         strerror_r(errno, errbuf, buflen);
         return 0;
     #else
         /* POSIX */
-        int ret = strerror_r(errno, errbuff, bufflen);
+        int ret = strerror_r(saved_errno, errbuff, bufflen);
         return ret;
     #endif
 }
@@ -53,12 +54,12 @@ void log_info_impl(const char *file, int line, const char *func, const char *fmt
 
 void log_errno_impl(const char *file, int line, const char *func, const char *fmt, ...) {
     int saved_errno = errno;
-    char errbuf[256];
-    safe_strerror(errbuf, sizeof errbuf);
     pthread_mutex_lock(&log_mutex);
 
+    char errbuf[256];
+    strerror_r(saved_errno, errbuf, sizeof errbuf);
 
-    fprintf(log_file, "[ERROR] %s:%d %s: ", file, line, func);
+    fprintf(log_file, "[ERROR] %s:%d %s, ", file, line, func);
 
     va_list args;
     va_start(args, fmt);

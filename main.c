@@ -18,6 +18,7 @@
 #include "src/data_structures/avl_concurrent/avl_concurrent.h"
 
 #include "utils.h"
+#include "log.h"
 #include "events.h"
 #include "network.h"
 #include "server.h"
@@ -25,8 +26,13 @@
 
 
 int main() {
+    log_file = fopen("program.log", "w");
+    if (!log_file) {
+        perror("fopen");
+        return 1;
+    }
 
-    int srv_port = 60000;
+    int srv_port = 00;
     char* srv_ip = "192.168.1.77";
     int broadcast_port = 12345;
     char* broadcast_ip = "192.168.1.255";
