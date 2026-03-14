@@ -72,14 +72,14 @@ void* send_file_name(void* value, void* context) {
     u_int16_t msg_len = strlen(msg);
     u_int16_t msg_len_network_order = htons(msg_len);
     send_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
-    send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
-
+    send_tcp_message(fd->fd_data->integer, msg, msg_len);
     return value;
 }
 
 handler_status_t see_files_request(fd_info fd, conc_AVL files) {
     concurrent_avl_map(files, send_file_name, (void*) fd);
-    send_tcp_message(fd->fd_data->integer, (char*) END_OF_REQUEST, HEADER_LENGTH);
+    u_int16_t end = END_OF_REQUEST;
+    send_tcp_message(fd->fd_data->integer, (char*) &end, HEADER_LENGTH);
     return CLIENT_CLOSE_CONNECTION;
 }
 
@@ -143,9 +143,10 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
             recv_tcp_message(fd->fd_data->integer, (void*) tempbuff, nbytes);
             return CLIENT_CONTINUE_CONNECTION;
         }
-        nbytes = recv_tcp_message(fd->fd_data->integer, buffer, nbytes);
+        nbytes = recv_tcp_message(fd->fd_data->integer, buffer, msg_len);
         if (nbytes <= 0)
             return CLIENT_CLOSE_CONNECTION;
+        buffer[msg_len] = '\0';
 
         arr = parse_input(buffer, " ");
         if (arr == NULL)

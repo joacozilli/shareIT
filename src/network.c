@@ -197,8 +197,11 @@ int recv_tcp_message(int fd, void* buffer, size_t len) {
             log_errno("error in recv");
             return -1;
         }
-        if (nbytes == 0) // peer closed connection orderly
+        if (nbytes == 0) {
+            // peer closed connection orderly
+            log_info("peer closed connection in the middle of receiving");
             break;
+        }
         total += nbytes;
     }
     return total;

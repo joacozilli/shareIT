@@ -54,10 +54,12 @@ void cmd_peek(char* peer_name, conc_AVL peers) {
     msg_len_network_order = htons(msg_len);
     nbytes = send_tcp_message(newsocket, (char*) &msg_len_network_order, HEADER_LENGTH);
     if (nbytes < 0) {
+        log_error("unable to send tcp message header");
         return;
     }
     nbytes = send_tcp_message(newsocket, msg, msg_len);
     if (nbytes < 0) {
+        log_error("unable to send tcp message body");
         return;
     }
 
