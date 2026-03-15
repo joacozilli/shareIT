@@ -86,24 +86,23 @@ handler_status_t see_files_request(fd_info fd, conc_AVL files) {
 
 
 handler_status_t download_request(fd_info fd, conc_AVL files, char* filename) {
-    u_int16_t msg_len_network_order;
-    char msg[1024];
     struct _file_info temp;
     temp.name = filename;
     file_info file = concurrent_avl_search(files, &temp);
     if (file == NULL) {
-        snprintf(msg, 1024, "NOT_FOUND %s", filename);
-        msg_len_network_order = htons(strlen(msg));
-        send_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
-        send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
+        uint8_t not_found = FILE_NOT_FOUND_CODE;
+        send_tcp_message(fd->fd_data->integer, (char*) &not_found, sizeof not_found);
         return CLIENT_CONTINUE_CONNECTION;
     }
 
-    sprintf(msg, "FOUND %s", filename);
-    msg_len_network_order = htons(strlen(msg));
+    // we inform such file exists and its size, so the client knows how much to read.
+    
+    uint8_t found = FILE_FOUND_CODE;
+    send_tcp_message(fd->fd_data->integer, (char*) &found, sizeof found);
 
-    send_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
-    send_tcp_message(fd->fd_data->integer, msg, strlen(msg));
+    // the client knows the next 32 bits are the size of the file, so no need for header.
+    uint32_t size_network_order = htonl(file->size);
+    send_tcp_message(fd->fd_data->integer, (char*) &size_network_order, sizeof size_network_order);
 
     char path[1024];
     snprintf(path, 1024, "%s", file->path);
@@ -117,7 +116,7 @@ handler_status_t download_request(fd_info fd, conc_AVL files, char* filename) {
     trans->chunk_len = FILE_TRANSFER_CHUNK_SIZE;
     fd->fd_data = malloc(sizeof(union _fd_data));
     fd->fd_data->trans_info = trans;
-    fd->type = FILE_TRANSFER;;
+    fd->type = FILE_TRANSFER;
     return DOWNLOAD_REQUEST;  
 }
 

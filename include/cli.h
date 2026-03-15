@@ -15,7 +15,7 @@ typedef enum {
     HELP,           // show help message to use cli
     NEIGHBORS,      // list all known peers
     PEEK,           // see all files shared by a specific peer
-    SEARCH,         // look for a specific file/pattern in all known peers
+    SEARCH,         // search a specific file/pattern in all known peers
     DOWNLOAD,       // download one or more files from a specific peer
     UNDEFINED
 } CMD;
