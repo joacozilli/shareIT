@@ -203,7 +203,7 @@ void run_command(Array input, cli_args s) {
         break;
     
     case PEEK:
-        if (array_size(input) < 2 || array_size(input) > 3) {
+        if (array_size(input) != 2) {
             printf("[ERROR] invalid number of arguments.\n");
             return;
         }
@@ -212,7 +212,7 @@ void run_command(Array input, cli_args s) {
         break;
     
     case DOWNLOAD:
-        if (array_size(input) != 2) {
+        if (array_size(input) < 2 || array_size(input) > 3) {
             printf("[ERROR] invalid number of arguments.\n");
             return;
         }
