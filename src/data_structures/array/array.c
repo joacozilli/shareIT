@@ -55,6 +55,15 @@ void* array_idx(Array arr, unsigned int i) {
     return arr->elems[i];
 }
 
+void array_map(Array arr, functionMap f, void* context) {
+    if (!arr) {
+        log_error("array given is NULL");
+        return;
+    }   
+    for (int i = 0; i < array_size; i++)
+        arr->elems[i] = f(arr->elems[i], context);
+    return;
+}
 
 unsigned int array_size(Array arr) {
     if (!arr) {

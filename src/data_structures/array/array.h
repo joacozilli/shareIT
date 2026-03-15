@@ -42,6 +42,11 @@ void array_add(Array arr, void* value);
 void* array_idx(Array arr, unsigned int i);
 
 /**
+ * apply f to all values in the array. It is asumed f doesn't change the type of values.
+ */
+void array_map(Array arr, functionMap f, void* context);
+
+/**
  * return the array size.
  */
 unsigned int array_size(Array arr);
