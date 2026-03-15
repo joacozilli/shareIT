@@ -148,6 +148,7 @@ void* download_file(void* _file_name, void* context) {
     }
 
     nbytes = send_tcp_message(fd, msg, msg_len);
+
     if (nbytes < msg_len) {
         printf("[ERROR] unable to send download request for file %s.\n", file_name);
         log_error("unable to send tcp message body");
@@ -155,13 +156,41 @@ void* download_file(void* _file_name, void* context) {
     }
     u_int8_t answer;
     nbytes = recv_tcp_message(fd, (char*) &answer, sizeof answer);
-    if (answer == FILE_NOT_FOUND_CODE) {
-        printf("[ERROR] peer said it doesn't have file %s. Its download has been aborted.\n", file_name);
-        return _file_name;
-    }
 
-    if (answer == FILE_FOUND_CODE) {
-        return _file_name;
+    if (answer == FILE_NOT_FOUND_CODE)
+        printf("[ERROR] peer said it doesn't have file %s. Its download has been aborted.\n", file_name);
+
+    else if (answer == FILE_FOUND_CODE) {
+        uint32_t file_size_network_order;
+        uint32_t file_size;
+
+        nbytes = recv_tcp_message(fd, (char*) &file_size_network_order, sizeof file_size_network_order);
+        if (nbytes < (int) sizeof file_size_network_order) {
+            printf("[ERROR] unable to download file %s.\n", file_name);
+            log_error("couldn't read the size of file");
+            return _file_name;
+        }
+
+        file_size = ntohl(file_size_network_order);
+        uint32_t total = 0;
+        char path[1024];
+        snprintf(path, 1024, ".share/%s", file_name);
+        FILE* new = fopen(path, "wb");
+
+        char buffer[FILE_TRANSFER_CHUNK_SIZE];
+        while (total < file_size) {
+
+            nbytes = recv_tcp_message(fd, buffer, FILE_TRANSFER_CHUNK_SIZE);
+            if (nbytes < FILE_TRANSFER_CHUNK_SIZE) {
+                printf("[ERROR] there was an unexpected error while download fie %s.\n", file_name);
+                log_error("a complete chunk was unable to arrive during a file transfer");
+                return _file_name;
+            }
+            fwrite(buffer, 1, FILE_TRANSFER_CHUNK_SIZE, new);
+            total += nbytes;
+        }
+
+
     }
 
     return _file_name;
