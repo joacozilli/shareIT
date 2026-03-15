@@ -2,6 +2,9 @@
 #define __CLI_H__
 #include "events.h"
 
+#define FILE_NAME_SPACE 50
+#define FILE_SIZE_SPACE 30
+
 struct _cli_args {
     conc_AVL peers;
     conc_AVL files;
