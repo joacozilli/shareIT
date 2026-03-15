@@ -57,7 +57,7 @@ void* print_peeked_file(void* file, void* context) {
     for (int i = file_size_len; i < FILE_SIZE_SPACE-1; file_size_buff[i] = ' ', i++);
     file_size_buff[FILE_SIZE_SPACE-1] = '\0';
 
-    printf("%s | %s\n", file_name_buff, file_size_buff);
+    printf("%s | %s bytes\n", file_name_buff, file_size_buff);
     return file;
 }
 
@@ -106,7 +106,21 @@ void cmd_peek(char* peer_name, conc_AVL peers) {
     }
     log_info("peek request to peer of name %s has been completed", peer_name);
     if (array_size(files) > 0) {
-        //printf("");
+        char name_col[FILE_NAME_SPACE];
+        char size_col[FILE_SIZE_SPACE];
+
+        strcpy(name_col, "FILE NAME");
+        int name_col_len = strlen(name_col);
+        for (int i = name_col_len; i < FILE_NAME_SPACE-1; name_col[i] = ' ', i++);
+        name_col[FILE_NAME_SPACE-1] = '\0';    
+        
+        strcpy(size_col, "FILE SIZE");
+        int size_col_len = strlen(size_col);
+        for (int i = size_col_len; i < FILE_SIZE_SPACE-1; size_col[i] = ' ', i++);
+        size_col[FILE_SIZE_SPACE-1] = '\0';
+
+        printf("%s %s\n", name_col, size_col);
+
         array_map(files, print_peeked_file, NULL);
 
     }
