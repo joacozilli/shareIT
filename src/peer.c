@@ -48,6 +48,24 @@ void peer_delete(void* p) {
 
 void peer_print(void* p) {
     peer pp = (peer) p;
-    printf("PEER %s\n", pp->name);
-    printf(" - ip: %s, port: %d\n", pp->ip, pp->port);
+    char name_buff[NAME_SPACE];
+    char ip_buff[IP_SPACE];
+    char port_buff[PORT_SPACE];
+
+    int name_len = strlen(pp->name);
+    strncpy(name_buff, pp->name, name_len);
+    for (int i = name_len; i < NAME_SPACE-1; name_buff[i] = ' ', i++);
+    name_buff[NAME_SPACE-1] = '\0';
+
+    int ip_len = strlen(pp->ip);
+    strncpy(ip_buff, pp->ip, ip_len);
+    for (int i = ip_len; i < IP_SPACE-1; ip_buff[i] = ' ', i++);
+    ip_buff[IP_SPACE-1] = '\0';
+
+    snprintf(port_buff, PORT_SPACE, "%d", pp->port);
+    int port_len = strlen(port_buff);
+    for (int i = port_len; i < PORT_SPACE-1; port_buff[i] = ' ', i++);
+    port_buff[PORT_SPACE-1] = '\0';
+
+    printf("name: %s | pi: %s | port: %s\n", name_buff, ip_buff, port_buff);
 }

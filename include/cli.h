@@ -9,10 +9,11 @@ struct _cli_args {
 typedef struct _cli_args* cli_args;
 
 typedef enum {
-    HELP,       // show help message to use cli
-    PEEK,       // see all files shared by a specific node
-    SEARCH,     // look for a specific file/pattern in all known nodes
-    DOWNLOAD,   // download one or more files from a specific node
+    HELP,           // show help message to use cli
+    NEIGHBORS,      // list all known peers
+    PEEK,           // see all files shared by a specific peer
+    SEARCH,         // look for a specific file/pattern in all known peers
+    DOWNLOAD,       // download one or more files from a specific peer
     UNDEFINED
 } CMD;
 

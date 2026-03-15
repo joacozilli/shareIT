@@ -2,6 +2,10 @@
 #define __PEER_H__
 
 
+// this is just for printing more nicely
+#define NAME_SPACE 30
+#define IP_SPACE 30
+#define PORT_SPACE 10
 
 struct _peer {
     char* name;

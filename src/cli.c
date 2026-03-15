@@ -17,6 +17,8 @@
 CMD command_mapping(char* str) {
     if (!strcmp(str, "help"))
         return HELP;
+    if (!strcmp(str, "neighbors"))
+        return NEIGHBORS;
     if (!strcmp(str, "peek"))
         return PEEK;
     if (!strcmp(str, "search"))
@@ -96,6 +98,9 @@ void run_command(Array input, cli_args s) {
         /* code */
         break;
 
+    case NEIGHBORS:
+        concurrent_avl_print(peers);
+        break;
     case PEEK:
         if (array_size(input) != 2) {
             printf("invalid number of arguments\n");
@@ -103,6 +108,12 @@ void run_command(Array input, cli_args s) {
         }
         char* peer_name = array_idx(input, 1);
         cmd_peek(peer_name, peers);
+
+        break;
+    
+    case DOWNLOAD:
+        
+
 
         break;
     default:
