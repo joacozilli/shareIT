@@ -140,7 +140,7 @@ void* download_file(void* _file_name, void* context) {
     u_int16_t msg_len = strlen(msg);
     u_int16_t msg_len_network_order = htons(msg_len);
 
-    unsigned long nbytes = send_tcp_message(fd, (char*) &msg_len_network_order, HEADER_LENGTH);
+    int nbytes = send_tcp_message(fd, (char*) &msg_len_network_order, HEADER_LENGTH);
     if (nbytes < 2) {
         printf("[ERROR] unable to send download request for file %s.\n", file_name);
         log_error("unable to send tcp message header");
@@ -165,7 +165,7 @@ void* download_file(void* _file_name, void* context) {
         uint32_t file_size;
 
         nbytes = recv_tcp_message(fd, (char*) &file_size_network_order, sizeof file_size_network_order);
-        if (nbytes < sizeof file_size_network_order) {
+        if (nbytes < (int) sizeof file_size_network_order) {
             printf("[ERROR] unable to download file %s.\n", file_name);
             log_error("couldn't read the size of file");
             return _file_name;
@@ -178,17 +178,22 @@ void* download_file(void* _file_name, void* context) {
         FILE* new = fopen(path, "wb");
 
         char buffer[FILE_TRANSFER_CHUNK_SIZE];
-        while (total < file_size) {
 
-            nbytes = recv_tcp_message(fd, buffer, FILE_TRANSFER_CHUNK_SIZE);
-            if (nbytes < FILE_TRANSFER_CHUNK_SIZE) {
-                printf("[ERROR] there was an unexpected error while download fie %s.\n", file_name);
+        printf("file %s is of size %d bytes.\nStarting download...\n", file_name, file_size);
+        while (total < file_size) {
+            int bytes_to_read = file_size - total < FILE_TRANSFER_CHUNK_SIZE ? file_size - total : FILE_TRANSFER_CHUNK_SIZE;
+            nbytes = recv_tcp_message(fd, buffer, bytes_to_read);
+            if (nbytes < 0) {
+                printf("[ERROR] there was an unexpected error while download file %s.\n", file_name);
                 log_error("a complete chunk was unable to arrive during a file transfer");
                 return _file_name;
             }
-            fwrite(buffer, 1, FILE_TRANSFER_CHUNK_SIZE, new);
-            total += nbytes;
+            int bytes_to_write = nbytes < FILE_TRANSFER_CHUNK_SIZE ? nbytes : FILE_TRANSFER_CHUNK_SIZE;
+            fwrite(buffer, 1, bytes_to_write, new);
+            printf("bytes_to_write %d\n", bytes_to_write);
+            total += bytes_to_write;
         }
+        printf("%d bytes were received in total\n", total);
     }
 
     return _file_name;
