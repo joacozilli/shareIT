@@ -146,7 +146,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         nbytes = recv_tcp_message(fd->fd_data->integer, buffer, msg_len);
         if (nbytes <= 0)
             return CLIENT_CLOSE_CONNECTION;
-        buffer[msg_len-1] = '\0';
+        buffer[msg_len] = '\0';
 
         arr = parse_input(buffer, " ");
         if (arr == NULL)
@@ -171,7 +171,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
 
     case SOCKET_UDP:
         nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
-        buffer[nbytes-1] = '\0';
+        buffer[nbytes] = '\0';
         
         Array arr = parse_input(buffer, " ");
         if (arr == NULL)
