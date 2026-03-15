@@ -60,7 +60,7 @@ void array_map(Array arr, functionMap f, void* context) {
         log_error("array given is NULL");
         return;
     }   
-    for (int i = 0; i < array_size; i++)
+    for (unsigned int i = 0; i < arr->size; i++)
         arr->elems[i] = f(arr->elems[i], context);
     return;
 }

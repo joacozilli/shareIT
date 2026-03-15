@@ -34,6 +34,32 @@ void cmd_help() {
 
 }
 
+/**
+ * function to be usde in cmd_peek() for mapping the array of files peeked.
+ */
+void* print_peeked_file(void* file, void* context) {
+    if(context == NULL) {}; // just to calm down the compiler. Context arg is not used.
+    char* f = (char*) file;
+    Array parsed = parse_input(f, " ");
+    if (parsed == NULL || array_size(parsed) != 2)
+        return file;
+    
+    char file_name_buff[FILE_NAME_SPACE];
+    char file_size_buff[FILE_SIZE_SPACE];
+
+    int file_name_len = strlen(array_idx(parsed, 0));
+    strncpy(file_name_buff, array_idx(parsed, 0), file_name_len);
+    for (int i = file_name_len; i < FILE_NAME_SPACE-1; file_name_buff[i] = ' ', i++);
+    file_name_buff[FILE_NAME_SPACE-1] = '\0';
+
+    int file_size_len = strlen(array_idx(parsed, 1));
+    strncpy(file_size_buff, array_idx(parsed, 1), file_size_len);
+    for (int i = file_size_len; i < FILE_SIZE_SPACE-1; file_size_buff[i] = ' ', i++);
+    file_size_buff[FILE_SIZE_SPACE-1] = '\0';
+
+    printf("%s | %s\n", file_name_buff, file_size_buff);
+    return file;
+}
 
 void cmd_peek(char* peer_name, conc_AVL peers) {
     struct _peer p;
@@ -73,12 +99,17 @@ void cmd_peek(char* peer_name, conc_AVL peers) {
     char buffer[1024];
     while (msg_len != END_OF_REQUEST) {
         recv_tcp_message(newsocket, buffer, msg_len);
+        buffer[msg_len-1] = '\0';
         array_add(files, buffer);
         nbytes = recv_tcp_message(newsocket, (char*) &msg_len_network_order, HEADER_LENGTH);
         msg_len = ntohs(msg_len_network_order);
     }
     log_info("peek request to peer of name %s has been completed", peer_name);
-    array_print(files);
+    if (array_size(files) > 0) {
+        //printf("");
+        array_map(files, print_peeked_file, NULL);
+
+    }
     array_destroy(files);
 }
 
