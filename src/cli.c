@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 #include "log.h"
 #include "network.h"
@@ -181,8 +182,8 @@ void cmd_download(Array files, char* peer_name, conc_AVL peers) {
         return;
     }
 
-    
-
+    array_map(files, download_file, (void*) &fd);
+    close(fd);
 }
 
 void run_command(Array input, cli_args s) {
@@ -202,7 +203,7 @@ void run_command(Array input, cli_args s) {
         break;
     
     case PEEK:
-        if (array_size(input) != 2) {
+        if (array_size(input) < 2 || array_size(input) > 3) {
             printf("[ERROR] invalid number of arguments.\n");
             return;
         }
