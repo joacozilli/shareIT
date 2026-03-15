@@ -140,7 +140,7 @@ void* download_file(void* _file_name, void* context) {
     u_int16_t msg_len = strlen(msg);
     u_int16_t msg_len_network_order = htons(msg_len);
 
-    int nbytes = send_tcp_message(fd, (char*) &msg_len_network_order, HEADER_LENGTH);
+    unsigned long nbytes = send_tcp_message(fd, (char*) &msg_len_network_order, HEADER_LENGTH);
     if (nbytes < 2) {
         printf("[ERROR] unable to send download request for file %s.\n", file_name);
         log_error("unable to send tcp message header");
@@ -165,7 +165,7 @@ void* download_file(void* _file_name, void* context) {
         uint32_t file_size;
 
         nbytes = recv_tcp_message(fd, (char*) &file_size_network_order, sizeof file_size_network_order);
-        if (nbytes < (int) sizeof file_size_network_order) {
+        if (nbytes < sizeof file_size_network_order) {
             printf("[ERROR] unable to download file %s.\n", file_name);
             log_error("couldn't read the size of file");
             return _file_name;
@@ -174,7 +174,7 @@ void* download_file(void* _file_name, void* context) {
         file_size = ntohl(file_size_network_order);
         uint32_t total = 0;
         char path[1024];
-        snprintf(path, 1024, ".share/%s", file_name);
+        snprintf(path, 1024, "./share/%s", file_name);
         FILE* new = fopen(path, "wb");
 
         char buffer[FILE_TRANSFER_CHUNK_SIZE];
@@ -189,8 +189,6 @@ void* download_file(void* _file_name, void* context) {
             fwrite(buffer, 1, FILE_TRANSFER_CHUNK_SIZE, new);
             total += nbytes;
         }
-
-
     }
 
     return _file_name;
