@@ -261,7 +261,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         Array forget = array_create(10, str_copy, str_delete, NULL);
         concurrent_avl_map(srv_info->peers, substract_tolerance, (void*) forget);
         array_map(forget, forget_peers, (void*) srv_info->peers);
-        
+        array_destroy(forget);
         return TIMEOUT_OR_BROADCAST;   
         break;
 

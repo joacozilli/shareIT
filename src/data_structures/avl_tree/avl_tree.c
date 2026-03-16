@@ -199,13 +199,17 @@ AVLNode avl_delete_aux(AVLNode T, void* value, functionCopy copy, functionCompar
             }
         void* left_max = get_max(T->left);
         void* new_root = copy(left_max);
-        T->left = avl_delete_aux(T, left_max, copy, cmp, del);
+        T->left = avl_delete_aux(T->left, left_max, copy, cmp, del);
         T->value = new_root;
+        set_height(T);
+        set_size(T);
         return T;
         }
 
     if (res > 0) {
         T->left = avl_delete_aux(T->left, value, copy, cmp, del);
+        set_height(T);
+        set_size(T);
         if (height(T->left) < height(T->right)-1)
             return balance_right(T);
         return T;
@@ -213,6 +217,8 @@ AVLNode avl_delete_aux(AVLNode T, void* value, functionCopy copy, functionCompar
 
     else {
         T->right = avl_delete_aux(T->right, value, copy, cmp, del);
+        set_height(T);
+        set_size(T);
         if (height(T->right) < height(T->left)-1)
             return balance_left(T);
         return T;
