@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "events.h"
 
+#define NUM_THREADS sysconf(_SC_NPROCESSORS_ONLN)
+
 /**
  * All messages sent via tcp that are not part of the protocol start with a header of this length
  * where the length of the actual message is stored. That way the receiver knows how much to read.
@@ -56,10 +58,17 @@ handler_status_t download_request(fd_info fd, conc_AVL files, char* filename);
 handler_status_t main_handler(fd_info fd, uint32_t events, server_info srv_info);
 
 
+
+struct _wait_for_events_thread_arg {
+    int epfd;
+    server_info srv_info;
+};
+typedef struct _wait_for_events_thread_arg* wait_for_events_thread_arg;
+
 /**
  * Wait for events function to be executed on a working thread.
  */
-void* wait_events(void* arg);
+void* wait_events(void* _arg);
 
 
 /**

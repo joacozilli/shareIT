@@ -250,6 +250,11 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
     return ERROR;
 }
 
+void* wait_events(void* _arg) {
+    wait_for_events_thread_arg arg = _arg;
+    wait_epoll_events(arg->epfd, arg->srv_info, main_handler);
+    return NULL;
+}
 
 int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, char* srv_name, char* share_dir) {
     int srvSocket = create_tcp_listener_socket(srv_port, ip, 1000);
@@ -270,28 +275,58 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
     srv_info->peers = concurrent_avl_create(peer_copy, peer_compare, peer_delete, peer_print);
 
     srv_info->files = get_files(share_dir);
-    if (!srv_info->files)
+    if (!srv_info->files) {
+        log_error("unable to get shared files");
         return -1;
+    }
 
-    printf("share folder read. Here are all the shareds files:\n");
-    concurrent_avl_print(srv_info->files);
 
     char* hello_msg = malloc(sizeof(char) * 1024);
     snprintf(hello_msg, 1024, "HELLO %s %s %d", srv_info->srv_name, srv_info->srv_ip, srv_info->srv_port);
     hello_msg = realloc(hello_msg, sizeof(char) * (strlen(hello_msg) + 1));
     srv_info->hello_msg = hello_msg;
 
-    create_hello_timeout(epfd);
-    create_cleanup_timeout(epfd);
-
+    int ret;
+    ret = create_hello_timeout(epfd);
+    if (ret < 0) {
+        log_error("unable to create hello timeout");
+        return -1;
+    }
+    ret = create_cleanup_timeout(epfd);
+    if (ret < 0) {
+        log_error("unable to create cleanup timeout");
+        return -1;
+    }
 
     cli_args cli_args = malloc(sizeof(struct _cli_args));
     cli_args->peers = srv_info->peers;
     cli_args->files = srv_info->files;
     pthread_t cli_thread;
     pthread_create(&cli_thread, NULL, start_cli, cli_args);
+    pthread_detach(cli_thread);
 
-    wait_epoll_events(epfd, srv_info, main_handler);
+    pthread_t wait_events_threads[NUM_THREADS];
+
+    struct _wait_for_events_thread_arg arg;
+    arg.epfd = epfd;
+    arg.srv_info = srv_info;
+
+    log_info("starting working threads");
+    for (int i = 0; i < NUM_THREADS; i++) {
+        ret = pthread_create(&wait_events_threads[i], NULL, wait_events, &arg);
+        if (ret != 0) {
+            log_errno("error with pthread_create");
+            return -1;
+        }
+    }
+
+    log_info("created %d working threads", NUM_THREADS);
+
+    for (int i = 0; i < NUM_THREADS; i++) {
+        pthread_join(wait_events_threads[i], NULL);
+    }
+
+
     close(srvSocket);
     close(udpSocket);
     close(epfd);

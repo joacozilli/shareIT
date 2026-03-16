@@ -10,7 +10,7 @@
 
 #define MAX_TOLERANCE 3
 
-#define FILE_TRANSFER_CHUNK_SIZE 1024 // files are transfered by chunks of this size of bytes
+#define FILE_TRANSFER_CHUNK_SIZE 4096 // files are transfered by chunks of this size of bytes
 
 /* Type returned by handler function passed to wait_epoll_events. Describes what the handler has done
 and what should be done with the file descriptor after handling the event. */
