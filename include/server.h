@@ -21,11 +21,6 @@
 // this code means the file doesn't exist (used to respond client in download handling)
 #define FILE_NOT_FOUND_CODE 0x00
 
-/**
- * If node has an error when broadcasting a hello message, it shall try again this amount at most.
- */
-#define MAX_HELLO_ATTEMPTS 3
-
 
 #define PEEK_REQUEST_MSG "PEEK_REQUEST"
 
@@ -47,13 +42,6 @@ handler_status_t download_request(fd_info fd, conc_AVL files, char* filename);
 
 /**
  * Main handler of node. It handles clients's requests, hello messages and timeouts.
- * broadcast hello, reading other's hello's and adding them to neiborhood, making cleanup
- * and managing search requests are done inside the handler (they are short tasks).
- * For download requests, the handler responds the client saying if the file exists or not.
- * If it does, returns an enum indicating that a new download request has started and the fd must be added
- * with the event EPOLLOUT and a data structure file_transfer_info (EPOLLIN event is kept).
- * 
- * When the client fd is ready for write, a chunk is transfered. This is done inside the handler.
  */
 handler_status_t main_handler(fd_info fd, uint32_t events, server_info srv_info);
 

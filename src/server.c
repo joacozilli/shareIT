@@ -123,6 +123,30 @@ handler_status_t download_request(fd_info fd, conc_AVL files, char* filename) {
 }
 
 
+void* substract_tolerance(void* _peer, void* context) {
+    peer p = (peer) _peer;
+    Array forget = (Array) context;
+
+    p->tolerance--;
+    if (p->tolerance == 0)
+        array_add(forget, p->name);
+
+    return _peer;
+}
+
+void* forget_peers(void* _peer_name, void* context) {
+    conc_AVL peers = (conc_AVL) context;
+    struct _peer p;
+    p.name = (char*) _peer_name;
+    peer ret = concurrent_avl_search_by(peers, &p, peer_compare_names);
+    if (ret != NULL) {
+        log_info("forgot peer %s (no hello message received for a while)", p.name);
+        concurrent_avl_delete(peers, ret);
+    }
+    return _peer_name;
+}
+
+
 
 handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info) {
     int nbytes;
@@ -203,7 +227,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
             p.name = name;
             p.ip = ip;
             p.port = port;
-            p.tolerance = 0;
+            p.tolerance = MAX_TOLERANCE;
             log_info("received hello from %s %s %d", name, ip, port);
             concurrent_avl_insert(srv_info->peers, (void*) &p);
         }
@@ -217,29 +241,27 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
 
     case SEND_HELLO_TIMEOUT:
         u_int64_t buff;
-        if (read(fd->fd_data->integer, (void*) &buff, 8) < 0) {
+        if (read(fd->fd_data->integer, (void*) &buff, sizeof buff) < 0) {
             log_errno("error in read");
             return ERROR;
         }
-
-        int attempts = 0;
-        send_hello_msg:
-        int ret = send_udp_mesage(srv_info->udp_socket,
-                                  srv_info->hello_msg,
-                                  strlen(srv_info->hello_msg),
-                                  srv_info->broadcast_port,
-                                  srv_info->broadcast_ip);
-        attempts++;
-        if (ret < 0) {
-            if (attempts < MAX_HELLO_ATTEMPTS)
-                goto send_hello_msg;
-            else
-                return ERROR;
-        }
+        send_udp_mesage(srv_info->udp_socket,
+                        srv_info->hello_msg,
+                        strlen(srv_info->hello_msg),
+                        srv_info->broadcast_port,
+                        srv_info->broadcast_ip);
         return TIMEOUT_OR_BROADCAST;
         break;
+
     case CLEANUP_TIMEOUT:
-        read(fd->fd_data->integer, (void*) &buff, 8);
+        if (read(fd->fd_data->integer, (void*) &buff, sizeof buff) < 0) {
+            log_errno("error in read");
+            return ERROR;
+        }
+        Array forget = array_create(10, str_copy, str_delete, NULL);
+        concurrent_avl_map(srv_info->peers, substract_tolerance, (void*) forget);
+        array_map(forget, forget_peers, (void*) srv_info->peers);
+        
         return TIMEOUT_OR_BROADCAST;   
         break;
 
