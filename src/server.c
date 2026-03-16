@@ -28,9 +28,10 @@ handler_status_t file_transfer(fd_info fd) {
     if (fd->fd_data->trans_info->chunk_amount_sent == fd->fd_data->trans_info->chunk_len) {
         nbytes = read(fd->fd_data->trans_info->file_fd,
                       fd->fd_data->trans_info->chunk_buffer,
-                      fd->fd_data->trans_info->chunk_len);
+                      FILE_TRANSFER_CHUNK_SIZE);
 
-        fd->fd_data->trans_info->chunk_amount_sent = FILE_TRANSFER_CHUNK_SIZE - nbytes;
+        fd->fd_data->trans_info->chunk_amount_sent = 0;
+        fd->fd_data->trans_info->chunk_len = nbytes;
         if (nbytes == 0) {
             /*
             transfer completed. Rearm fd as type SOCKET_TCP_CLIENT.
@@ -48,7 +49,7 @@ handler_status_t file_transfer(fd_info fd) {
                   fd->fd_data->trans_info->chunk_buffer + fd->fd_data->trans_info->chunk_amount_sent,
                   fd->fd_data->trans_info->chunk_len - fd->fd_data->trans_info->chunk_amount_sent, 0);
 
-    log_info("Sent %d bytes through file transfer when a shoulf have sent", nbytes);
+    log_info("Sent %d bytes through file transfer", nbytes);
     
     if (nbytes < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -116,7 +117,7 @@ handler_status_t download_request(fd_info fd, conc_AVL files, char* filename) {
 
     trans->file_fd = file_fd;
     trans->chunk_amount_sent = 0;
-    trans->chunk_len = FILE_TRANSFER_CHUNK_SIZE;
+    trans->chunk_len = 0;
     fd->fd_data = malloc(sizeof(union _fd_data));
     fd->fd_data->trans_info = trans;
     fd->type = FILE_TRANSFER;
