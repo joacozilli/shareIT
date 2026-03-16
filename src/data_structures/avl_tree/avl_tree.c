@@ -178,8 +178,54 @@ void* avl_search_by(AVL tree, void* value, functionCompareOrd cmp) {
 }
 
 
+void* get_max(AVLNode T) {
+    if (T->right == NULL)
+        return T->value;
+    return get_max(T->right);
+}
+
+AVLNode avl_delete_aux(AVLNode T, void* value, functionCopy copy, functionCompareOrd cmp, functionDelete del) {
+    if (T == NULL)
+        return NULL;
+    
+    int res = cmp(T->value, value);
+
+    if (res == 0) {
+        del(T->value);
+        if (T->left == NULL) {
+            AVLNode temp = T->right;
+            free(T);
+            return temp;
+            }
+        void* left_max = get_max(T->left);
+        void* new_root = copy(left_max);
+        T->left = avl_delete_aux(T, left_max, copy, cmp, del);
+        T->value = new_root;
+        return T;
+        }
+
+    if (res > 0) {
+        T->left = avl_delete_aux(T->left, value, copy, cmp, del);
+        if (height(T->left) < height(T->right)-1)
+            return balance_right(T);
+        return T;
+    }
+
+    else {
+        T->right = avl_delete_aux(T->right, value, copy, cmp, del);
+        if (height(T->right) < height(T->left)-1)
+            return balance_left(T);
+        return T;
+    }
+    
+}
+
 void avl_delete(AVL tree, void* value) {
-    return;
+    if(!tree) {
+        log_error("avl tree given is NULL");
+        return;
+    }   
+    avl_delete_aux(tree->root, value, tree->copy, tree->cmp, tree->del);
 }
 
 
