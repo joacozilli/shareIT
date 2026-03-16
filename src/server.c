@@ -67,7 +67,7 @@ void* send_file_name(void* value, void* context) {
     fd_info fd = (fd_info) context;
 
     char msg[1024];
-    snprintf(msg, 1024, "%s %ld", file->name, file->size);
+    snprintf(msg, 1024, "%s %zu", file->name, file->size);
 
     u_int16_t msg_len = strlen(msg);
     u_int16_t msg_len_network_order = htons(msg_len);
@@ -171,7 +171,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         break;
 
     case SOCKET_UDP:
-        nbytes = recv_udp_message(fd->fd_data->integer, buffer, 255);
+        nbytes = recv_udp_message(fd->fd_data->integer, buffer, buffer_len);
         buffer[nbytes] = '\0';
         
         Array arr = parse_input(buffer, " ");

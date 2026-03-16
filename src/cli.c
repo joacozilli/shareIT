@@ -42,8 +42,13 @@ void* print_peeked_file(void* file, void* context) {
     if(context == NULL) {}; // just to calm down the compiler. Context arg is not used.
     char* f = (char*) file;
     Array parsed = parse_input(f, " ");
-    if (parsed == NULL || array_size(parsed) != 2)
+    if (parsed == NULL)
         return file;
+    
+    if (array_size(parsed) != 2) {
+        array_destroy(parsed);
+        return file;
+    }
     
     char file_name_buff[FILE_NAME_SPACE];
     char file_size_buff[FILE_SIZE_SPACE];
@@ -59,6 +64,7 @@ void* print_peeked_file(void* file, void* context) {
     file_size_buff[FILE_SIZE_SPACE-1] = '\0';
 
     printf("%s | %s bytes\n", file_name_buff, file_size_buff);
+    array_destroy(parsed);
     return file;
 }
 
@@ -181,19 +187,24 @@ void* download_file(void* _file_name, void* context) {
 
         printf("file %s is of size %d bytes.\nStarting download...\n", file_name, file_size);
         while (total < file_size) {
-            int bytes_to_read = file_size - total < FILE_TRANSFER_CHUNK_SIZE ? file_size - total : FILE_TRANSFER_CHUNK_SIZE;
+            int bytes_to_read = file_size - total < FILE_TRANSFER_CHUNK_SIZE \
+                                                    ? file_size - total \
+                                                    : FILE_TRANSFER_CHUNK_SIZE;
+
             nbytes = recv_tcp_message(fd, buffer, bytes_to_read);
-            if (nbytes < 0) {
+            if (nbytes <= 0) {
                 printf("[ERROR] there was an unexpected error while download file %s.\n", file_name);
-                log_error("a complete chunk was unable to arrive during a file transfer");
+                log_error("a chunk was unable to arrive during a file transfer");
+                fclose(new);
                 return _file_name;
             }
-            int bytes_to_write = nbytes < FILE_TRANSFER_CHUNK_SIZE ? nbytes : FILE_TRANSFER_CHUNK_SIZE;
-            fwrite(buffer, 1, bytes_to_write, new);
-            printf("bytes_to_write %d\n", bytes_to_write);
-            total += bytes_to_write;
+
+            fwrite(buffer, 1, nbytes, new);
+            printf("bytes_to_write %d\n", nbytes);
+            total += nbytes;
         }
         printf("%d bytes were received in total\n", total);
+        fclose(new);
     }
 
     return _file_name;

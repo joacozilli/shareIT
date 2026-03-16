@@ -26,7 +26,7 @@
 
 
 int main() {
-    log_file = fopen("program.log", "w");
+    log_file = fopen("shareit.log", "w");
     if (!log_file) {
         perror("fopen");
         return 1;

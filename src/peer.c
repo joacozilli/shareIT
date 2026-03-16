@@ -67,5 +67,5 @@ void peer_print(void* p) {
     for (int i = port_len; i < PORT_SPACE-1; port_buff[i] = ' ', i++);
     port_buff[PORT_SPACE-1] = '\0';
 
-    printf("name: %s | pi: %s | port: %s\n", name_buff, ip_buff, port_buff);
+    printf("name: %s | ip: %s | port: %s\n", name_buff, ip_buff, port_buff);
 }
