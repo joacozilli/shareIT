@@ -49,8 +49,6 @@ handler_status_t file_transfer(fd_info fd) {
                   fd->fd_data->trans_info->chunk_buffer + fd->fd_data->trans_info->chunk_amount_sent,
                   fd->fd_data->trans_info->chunk_len - fd->fd_data->trans_info->chunk_amount_sent, 0);
 
-    log_info("Sent %d bytes through file transfer", nbytes);
-    
     if (nbytes < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
             return DOWNLOAD_REQUEST;
@@ -136,11 +134,18 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
     switch (fd->type) {
     case SOCKET_TCP_CLIENT:
 
+        if (events & (EPOLLHUP | EPOLLRDHUP | EPOLLERR)) {
+            log_info("hang up detected, closing connection.");
+            return CLIENT_CLOSE_CONNECTION;
+        }
+
         nbytes = recv_tcp_message(fd->fd_data->integer, (char*) &msg_len_network_order, HEADER_LENGTH);
         msg_len = ntohs(msg_len_network_order);
 
-        if (nbytes <= 0 || msg_len <= 0)
+        if (nbytes <= 0 || msg_len <= 0) {
+            log_error("unable to receive tcp message header");
             return CLIENT_CLOSE_CONNECTION;
+        }
 
         if (msg_len > buffer_len) {
             /* message longer than it should, ignore it */
@@ -149,8 +154,10 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
             return CLIENT_CONTINUE_CONNECTION;
         }
         nbytes = recv_tcp_message(fd->fd_data->integer, buffer, msg_len);
-        if (nbytes <= 0)
+        if (nbytes <= 0) {
+            log_error("unable to receive tcp message body");
             return CLIENT_CLOSE_CONNECTION;
+        }
         buffer[msg_len] = '\0';
 
         arr = parse_input(buffer, " ");
@@ -205,15 +212,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         break;
 
     case FILE_TRANSFER:
-        /* transfer a chunk */
-        if (events & EPOLLOUT)
-           return file_transfer(fd);
-
-        /* client sent something, probably an error during transfer on his behalf */
-        else if (events & EPOLLIN) {
-
-        }
-        
+        return file_transfer(fd); 
         break;
 
     case SEND_HELLO_TIMEOUT:

@@ -75,7 +75,7 @@ int accept_client_connection(int epfd, int srvSock) {
     sockInf->fd_data->integer = clientfd;
     sockInf->type = SOCKET_TCP_CLIENT;
     struct epoll_event event;
-    event.events = EPOLLIN | EPOLLONESHOT;
+    event.events = EPOLLIN | EPOLLRDHUP | EPOLLONESHOT;
     event.data.ptr = sockInf;
 
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, clientfd, &event) < 0) {
@@ -116,7 +116,7 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
             case  CLIENT_CONTINUE_CONNECTION:
                 struct epoll_event cliEvent;
                 cliEvent.data.ptr = fd;
-                cliEvent.events = EPOLLIN | EPOLLONESHOT;
+                cliEvent.events = EPOLLIN | EPOLLHUP | EPOLLRDHUP | EPOLLERR | EPOLLONESHOT;
 
                 /* if unable to add again to epoll, close connection (very rare though) */
                 if (epoll_ctl(epfd, EPOLL_CTL_MOD, fd->fd_data->integer, &cliEvent) < 0) {
@@ -129,7 +129,8 @@ int wait_epoll_events(int epfd, server_info srv_info, handler_status_t (*handler
             case CLIENT_CLOSE_CONNECTION:
                 epoll_ctl(epfd, EPOLL_CTL_DEL, fd->fd_data->integer, NULL);
                 close(fd->fd_data->integer);
-                free(fd);   
+                free(fd);
+                log_info("closed connection with a client"); 
                 break;
             
             case DOWNLOAD_REQUEST:
