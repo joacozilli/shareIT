@@ -231,7 +231,7 @@ void avl_delete(AVL tree, void* value) {
         log_error("avl tree given is NULL");
         return;
     }   
-    avl_delete_aux(tree->root, value, tree->copy, tree->cmp, tree->del);
+    tree->root = avl_delete_aux(tree->root, value, tree->copy, tree->cmp, tree->del);
 }
 
 
