@@ -200,7 +200,6 @@ void* download_file(void* _file_name, void* context) {
             }
 
             fwrite(buffer, 1, nbytes, new);
-            printf("bytes_to_write %d\n", nbytes);
             total += nbytes;
         }
         printf("%d bytes were received in total\n", total);

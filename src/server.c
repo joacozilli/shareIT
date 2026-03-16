@@ -30,7 +30,7 @@ handler_status_t file_transfer(fd_info fd) {
                       fd->fd_data->trans_info->chunk_buffer,
                       fd->fd_data->trans_info->chunk_len);
 
-        fd->fd_data->trans_info->chunk_amount_sent = 0;
+        fd->fd_data->trans_info->chunk_amount_sent = FILE_TRANSFER_CHUNK_SIZE - nbytes;
         if (nbytes == 0) {
             /*
             transfer completed. Rearm fd as type SOCKET_TCP_CLIENT.
@@ -43,9 +43,12 @@ handler_status_t file_transfer(fd_info fd) {
             return CLIENT_CONTINUE_CONNECTION;
         }
     }
+
     nbytes = send(fd->fd_data->trans_info->client_fd, 
                   fd->fd_data->trans_info->chunk_buffer + fd->fd_data->trans_info->chunk_amount_sent,
                   fd->fd_data->trans_info->chunk_len - fd->fd_data->trans_info->chunk_amount_sent, 0);
+
+    log_info("Sent %d bytes through file transfer when a shoulf have sent", nbytes);
     
     if (nbytes < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
