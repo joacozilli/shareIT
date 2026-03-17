@@ -1,8 +1,15 @@
 COMPILER = gcc
-FLAGS = -Wall -Wextra -g -Isrc -Iinclude -Isrc/data_structures \
-		-Isrc/data_structures/avl_tree -Isrc/data_structures/avl_concurrent \
+
+FLAGS = -Wall -Wextra -g \
+		-Isrc \
+		-Iinclude \
+		-Isrc/data_structures \
+		-Isrc/data_structures/avl_tree \
+		-Isrc/data_structures/avl_concurrent \
 		-Isrc/data_structures/array
+
 EXEC = shareIT
+
 CONFIG_FILE_PATH = "config.json"
 
 SRC = \
@@ -18,6 +25,7 @@ SRC = \
 	src/server.c \
 	src/files.c \
 	src/cli.c \
+	src/cJSON.c \
 	main.c
 
 # compile program
@@ -29,5 +37,5 @@ clean:
 	rm $(EXEC)
 
 # read config file
-read-conf:
+readconf:
 	cat $(CONFIG_FILE_PATH)

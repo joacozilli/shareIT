@@ -1,0 +1,7 @@
+{
+    "srv_name" : "name",
+    "srv_port" : 0,
+    "srv_ip" : "ip",
+    "broadcast_port" : 0,
+    "broadcast_ip" : "broadcast ip"
+}
