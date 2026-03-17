@@ -71,11 +71,9 @@ int main() {
     int srv_port = json_srv_port->valueint;
     char* srv_ip = strdup(json_srv_ip->valuestring);
     int broadcast_port = json_broadcast_port->valueint;
-    char* broadcast_ip = json_broadcast_ip->valuestring;
+    char* broadcast_ip = strdup(json_broadcast_ip->valuestring);
 
     cJSON_Delete(json);
-
-    
 
     start_node(srv_port, srv_ip, broadcast_port, broadcast_ip, srv_name, "./share");
     
