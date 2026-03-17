@@ -4,7 +4,7 @@ shareIT is a simple file sharing system for a local network. It uses a completel
 making each node fully independent and the system highly scalable. It facilitates the task of transfering files between
 computers connected to the same network.
 
-# instalation guide
+# installation guide
 To install, you can simply clone the repository:
 
 `git clone git@github.com:joacozilli/shareIT.git`
@@ -34,7 +34,7 @@ to send requests.
 in the local network. It is used by the discovering mechanism to find and acknowlege other peers.
 This address must be the same for all nodes in the same system.
 
-Currently, the files desired to be shared by the node must be in the folder `share`, (subdirectories are not supported for now)
+Currently, the files desired to be shared by the node must be in the folder `share`.
 
 To compile the program, simply run:
 `make build`
