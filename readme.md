@@ -9,11 +9,11 @@ To install, you can simply clone the repository:
 
 `git clone git@github.com:joacozilli/shareIT.git`
 
-It is requiere to have `GCC` installed.
+It is required to have `gcc` installed.
 
 # usage guide
 
-To use the program, first is necessary to create a file named 'config.json' inside the program directory
+To use the program, first it is necessary to create a file named 'config.json' inside the program directory
 (but outside 'include' and 'src' directories) where all the required information to run a node is specified.
 This json file must have the following structure:
 ```
@@ -32,11 +32,19 @@ to send requests.
 
 `broadcast_port` and `broadcast_ip`, as the names suggest, form the address for broadcasting messages
 in the local network. It is used by the discovering mechanism to find and acknowlege other peers.
-This address must be the same for all nodes in the system.
+This address must be the same for all nodes in the same system.
 
+Currently, the files desired to be shared by the node must be in the folder `share`, and subdirectories are not supported
+(this will be changed to something better and more practical in the future).
 
 To compile the program, simply run:
 `make build`
 
-Once compile, the run the program with:
+Once compile, then run the program with:
 `./shareIT`
+
+If node executed correctly, ther cli will start. The following commands are supported:
+
+- `neighbors` show all the known peers at the moment
+- `peek <PEER_NAME>` see all files shared by peer PEER_NAME
+- `download <FILE_NAME> <PEER_NAME>` download file FILE_NAMe from peer PEER_NAME
