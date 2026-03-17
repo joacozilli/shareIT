@@ -7,16 +7,16 @@ computers connected to the same network.
 # instalation guide
 To install, you can simply clone the repository:
 
-'git clone git@github.com:joacozilli/shareIT.git'
+`git clone git@github.com:joacozilli/shareIT.git`
 
-It is requiere to have 'GCC' installed.
+It is requiere to have `GCC` installed.
 
 # usage guide
 
 To use the program, first is necessary to create a file named 'config.json' inside the program directory
 (but outside 'include' and 'src' directories) where all the required information to run a node is specified.
 This json file must have the following structure:
-'''
+```
 {
     "srv_name" : "your node name",
     "srv_port" : 00000,
@@ -24,19 +24,19 @@ This json file must have the following structure:
     "broadcast_port" : 00000,
     "broadcast_ip" : "your.local.network.broadcast.ip"
 }
-'''
+```
 
 Each node in the system must have a unique name (currently, the program DOES NOT check for this).
-'srv_port' and 'srv_ip' form the address of the node in the network; other peers will connect to this address
+`srv_port` and `srv_ip` form the address of the node in the network; other peers will connect to this address
 to send requests.
 
-'broadcast_port' and 'broadcast_ip', as the names suggest, form the address for broadcasting messages
+`broadcast_port` and `broadcast_ip`, as the names suggest, form the address for broadcasting messages
 in the local network. It is used by the discovering mechanism to find and acknowlege other peers.
 This address must be the same for all nodes in the system.
 
 
 To compile the program, simply run:
-'make build'
+`make build`
 
 Once compile, the run the program with:
-'./shareIT'
+`./shareIT`
