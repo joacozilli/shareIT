@@ -323,8 +323,6 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
     cli_args->peers = srv_info->peers;
     cli_args->files = srv_info->files;
     pthread_t cli_thread;
-    pthread_create(&cli_thread, NULL, start_cli, cli_args);
-    pthread_detach(cli_thread);
 
     pthread_t wait_events_threads[NUM_THREADS];
 
@@ -342,6 +340,9 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
     }
 
     log_info("created %d working threads", NUM_THREADS);
+
+    pthread_create(&cli_thread, NULL, start_cli, cli_args);
+    pthread_detach(cli_thread);
 
     for (int i = 0; i < NUM_THREADS; i++) {
         pthread_join(wait_events_threads[i], NULL);
