@@ -32,7 +32,12 @@ CMD command_mapping(char* str) {
 
 
 void cmd_help() {
-
+    printf("COMMAND NAME                         DESCRIPTION\n");
+    printf("help                                 show this message\n");
+    printf("neighbors                            list all known peers\n");
+    printf("peek [PEER_NAME]                     see all files shared byt peer PEER_NAME\n");
+    printf("download [FILE_NAME] [PEER_NAME]     download file FILE_NAME from peer PEER_NAME\n");
+    printf("--------------------------------------------------------------------------------\n");
 }
 
 /**
@@ -237,7 +242,7 @@ void run_command(Array input, cli_args s) {
     switch (cmd)
     {
     case HELP:
-        /* code */
+        cmd_help();
         break;
 
     case NEIGHBORS:
@@ -254,24 +259,17 @@ void run_command(Array input, cli_args s) {
         break;
     
     case DOWNLOAD:
-        if (array_size(input) < 2 || array_size(input) > 3) {
+        if (array_size(input) != 3) {
             printf("[ERROR] invalid number of arguments.\n");
             return;
         }
         Array files = array_create(10, str_copy, str_delete, NULL);
 
-        // download just one file
         if (array_size(input) == 3) {
             peer_name = array_idx(input, 2);
             char* file_name = array_idx(input, 1);         
             array_add(files, file_name);
         }
-
-        // download more than one file
-        else if (array_size(input) == 2) {
-            return;
-        }
-
         cmd_download(files, peer_name, peers);
         break;
     
@@ -288,7 +286,8 @@ void run_command(Array input, cli_args s) {
 void* start_cli(void* arg) {
 
     cli_args s = (cli_args) arg;
-
+    printf("welcome!!\n");
+    cmd_help();
     while(1) {
         printf("--> ");
         fflush(stdout);
