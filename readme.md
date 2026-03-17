@@ -18,7 +18,7 @@ To use the program, first is necessary to create a file named 'config.json' insi
 This json file must have the following structure:
 ```
 {
-    "srv_name" : "your node name",
+    "srv_name" : "your-node-name",
     "srv_port" : 00000,
     "srv_ip" : "your.node.ip",
     "broadcast_port" : 00000,
@@ -26,7 +26,7 @@ This json file must have the following structure:
 }
 ```
 
-Each node in the system must have a unique name (currently, the program DOES NOT check for this).
+Each node in the system must have a unique name with no spaces in-between (currently, the program DOES NOT check for this).
 `srv_port` and `srv_ip` form the address of the node in the network; other peers will connect to this address
 to send requests.
 
