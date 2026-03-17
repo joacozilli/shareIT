@@ -1,19 +1,19 @@
 # shareIT
 
-    shareIT is a simple file sharing system for a local network. It uses a completely decentralized P2P architecture,
+shareIT is a simple file sharing system for a local network. It uses a completely decentralized P2P architecture,
 making each node fully independent and the system highly scalable. It facilitates the task of transfering files between
 computers connected to the same network.
 
 # instalation guide
-    To install, you can simply clone the repository:
+To install, you can simply clone the repository:
 
 'git clone git@github.com:joacozilli/shareIT.git'
 
-    It is requiere to have 'GCC' installed.
+It is requiere to have 'GCC' installed.
 
 # usage guide
 
-    To use the program, first is necessary to create a file named 'config.json' inside the program directory
+To use the program, first is necessary to create a file named 'config.json' inside the program directory
 (but outside 'include' and 'src' directories) where all the required information to run a node is specified.
 This json file must have the following structure:
 '''
@@ -26,10 +26,11 @@ This json file must have the following structure:
 }
 '''
 
-    Each node in the system must have a unique name (currently, the program DOES NOT check for this).
+Each node in the system must have a unique name (currently, the program DOES NOT check for this).
 'srv_port' and 'srv_ip' form the address of the node in the network; other peers will connect to this address
 to send requests.
-    'broadcast_port' and 'broadcast_ip', as the names suggest, form the address for broadcasting messages
+
+'broadcast_port' and 'broadcast_ip', as the names suggest, form the address for broadcasting messages
 in the local network. It is used by the discovering mechanism to find and acknowlege other peers.
 This address must be the same for all nodes in the system.
 
