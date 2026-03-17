@@ -113,7 +113,7 @@ void cmd_peek(char* peer_name, conc_AVL peers) {
     char buffer[1024];
     while (msg_len != END_OF_REQUEST) {
         recv_tcp_message(newsocket, buffer, msg_len);
-        buffer[msg_len-1] = '\0';
+        buffer[msg_len] = '\0';
         array_add(files, buffer);
         nbytes = recv_tcp_message(newsocket, (char*) &msg_len_network_order, HEADER_LENGTH);
         msg_len = ntohs(msg_len_network_order);
@@ -236,7 +236,6 @@ void cmd_download(Array files, char* peer_name, conc_AVL peers) {
 void run_command(Array input, cli_args s) {
     if (input == NULL)
         return;
-    conc_AVL files = s->files;
     conc_AVL peers = s->peers;
     CMD cmd = command_mapping(array_idx(input, 0));
     switch (cmd)
