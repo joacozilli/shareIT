@@ -34,8 +34,7 @@ to send requests.
 in the local network. It is used by the discovering mechanism to find and acknowlege other peers.
 This address must be the same for all nodes in the same system.
 
-Currently, the files desired to be shared by the node must be in the folder `share`, and subdirectories are not supported
-(this will be changed to something better and more practical in the future).
+Currently, the files desired to be shared by the node must be in the folder `share`, (subdirectories are not supported for now)
 
 To compile the program, simply run:
 `make build`
@@ -43,8 +42,8 @@ To compile the program, simply run:
 Once compile, then run the program with:
 `./shareIT`
 
-If node executed correctly, ther cli will start. The following commands are supported:
+If node executed correctly, the cli will start. The following commands are supported:
 
 - `neighbors` show all the known peers at the moment
 - `peek <PEER_NAME>` see all files shared by peer PEER_NAME
-- `download <FILE_NAME> <PEER_NAME>` download file FILE_NAMe from peer PEER_NAME
+- `download <FILE_NAME> <PEER_NAME>` download file FILE_NAME from peer PEER_NAME
