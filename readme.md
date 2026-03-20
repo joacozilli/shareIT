@@ -13,7 +13,7 @@ It is required to have `gcc` installed.
 
 # usage guide
 
-To use the program, first it is necessary to create a file named 'config.json' inside the program directory
+To use the program, first it is necessary to create a file named `config.json` inside the program's directory
 (but outside 'include' and 'src' directories) where all the required information to run a node is specified.
 This json file must have the following structure:
 ```
@@ -34,7 +34,8 @@ to send requests.
 in the local network. It is used by the discovering mechanism to find and acknowlege other peers.
 This address must be the same for all nodes in the same system.
 
-Currently, the files desired to be shared by the node must be in the folder `share`.
+Currently, the files desired to be shared by the node must be in a folder named `share` that must be inside the
+program's directory (but outside 'include' and 'src' directories).
 
 To compile the program, simply run:
 `make build`
