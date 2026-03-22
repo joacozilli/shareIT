@@ -21,6 +21,11 @@ typedef enum {
 } CMD;
 
 
+struct _download_file_context {
+    int fd;
+    conc_AVL files;
+};
+typedef struct _download_file_context* download_file_context;
 
 void* start_cli(void* arg);
 

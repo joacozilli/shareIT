@@ -10,6 +10,7 @@
 #include "server.h"
 #include "utils.h"
 #include "peer.h"
+#include "files.h"
 #include "str.h"
 
 /**
@@ -41,7 +42,7 @@ void cmd_help() {
 }
 
 /**
- * function to be usde in cmd_peek() for mapping the array of files peeked.
+ * function to be used in cmd_peek() for mapping the array of files peeked.
  */
 void* print_peeked_file(void* file, void* context) {
     if(context == NULL) {}; // just to calm down the compiler. Context arg is not used.
@@ -144,7 +145,10 @@ void cmd_peek(char* peer_name, conc_AVL peers) {
 
 void* download_file(void* _file_name, void* context) {
     char* file_name = (char*) _file_name;
-    int fd = *(int*) context;
+
+    download_file_context cont = (download_file_context) context;
+    int fd = cont->fd;
+    conc_AVL my_files = cont->files;
     
     char msg[1024];
     snprintf(msg, 1024, "DOWNLOAD_REQUEST %s", file_name);
@@ -207,14 +211,20 @@ void* download_file(void* _file_name, void* context) {
             fwrite(buffer, 1, nbytes, new);
             total += nbytes;
         }
-        printf("%d bytes were received in total\n", total);
+        printf("Download completed. %d bytes were received in total.\n", total);
         fclose(new);
+
+        struct _file_info new_file;
+        new_file.name = file_name;
+        new_file.size = file_size;
+        new_file.path = path;
+        concurrent_avl_insert(my_files, &new_file);
     }
 
     return _file_name;
 }
 
-void cmd_download(Array files, char* peer_name, conc_AVL peers) {
+void cmd_download(Array files_to_dl, char* peer_name, conc_AVL peers, conc_AVL my_files) {
     struct _peer p;
     p.name = peer_name;
     peer ret = concurrent_avl_search_by(peers, &p, peer_compare_names);
@@ -229,7 +239,11 @@ void cmd_download(Array files, char* peer_name, conc_AVL peers) {
         return;
     }
 
-    array_map(files, download_file, (void*) &fd);
+    struct _download_file_context cont;
+    cont.fd = fd;
+    cont.files = my_files;
+
+    array_map(files_to_dl, download_file, (void*) &cont);
     close(fd);
 }
 
@@ -237,6 +251,7 @@ void run_command(Array input, cli_args s) {
     if (input == NULL)
         return;
     conc_AVL peers = s->peers;
+    conc_AVL my_files = s->files;
     CMD cmd = command_mapping(array_idx(input, 0));
     switch (cmd)
     {
@@ -262,14 +277,19 @@ void run_command(Array input, cli_args s) {
             printf("[ERROR] invalid number of arguments.\n");
             return;
         }
-        Array files = array_create(10, str_copy, str_delete, NULL);
+
+        /* want to add the possibility of requesting download of multiple files
+        from a peer, that is way an array is used.
+        */
+        Array files_to_dl = array_create(10, str_copy, str_delete, NULL);
 
         if (array_size(input) == 3) {
             peer_name = array_idx(input, 2);
             char* file_name = array_idx(input, 1);         
-            array_add(files, file_name);
+            array_add(files_to_dl, file_name);
         }
-        cmd_download(files, peer_name, peers);
+        cmd_download(files_to_dl, peer_name, peers, my_files);
+        array_destroy(files_to_dl);
         break;
     
     case UNDEFINED:
