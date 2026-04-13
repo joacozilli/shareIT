@@ -305,7 +305,6 @@ void run_command(Array input, cli_args s) {
 void* start_cli(void* arg) {
 
     cli_args s = (cli_args) arg;
-    printf("welcome!!\n");
     cmd_help();
     while(1) {
         printf("--> ");
