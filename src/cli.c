@@ -36,7 +36,7 @@ void cmd_help() {
     printf("COMMAND NAME                         DESCRIPTION\n");
     printf("help                                 show this message\n");
     printf("neighbors                            list all known peers\n");
-    printf("peek [PEER_NAME]                     see all files shared byt peer PEER_NAME\n");
+    printf("peek [PEER_NAME]                     see all files shared by peer PEER_NAME\n");
     printf("download [FILE_NAME] [PEER_NAME]     download file FILE_NAME from peer PEER_NAME\n");
     printf("--------------------------------------------------------------------------------\n");
 }
