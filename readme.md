@@ -41,7 +41,7 @@ To compile the program, simply run:
 `make build`
 
 Once compile, then run the program with:
-`./shareIT`
+`./shareit`
 
 If node executed correctly, the cli will start. The following commands are supported:
 

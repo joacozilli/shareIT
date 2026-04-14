@@ -8,7 +8,7 @@ FLAGS = -Wall -Wextra -g \
 		-Isrc/data_structures/avl_concurrent \
 		-Isrc/data_structures/array
 
-EXEC = shareIT
+EXEC = shareit
 
 CONFIG_FILE_PATH = "config.json"
 
