@@ -35,7 +35,7 @@ int main() {
     char config_buffer[2048];
     FILE* config_file = fopen("config.json", "r");
     if (!config_file) {
-        log_errno("error with fopen (unable to open config file)");
+        fprintf(stderr, "error with fopen (unable to open config file)\n");
         return EXIT_FAILURE;
     }
     fread(config_buffer, sizeof(char) , sizeof config_buffer, config_file);
@@ -43,7 +43,7 @@ int main() {
 
     log_file = fopen("shareit.log", "w");
     if (!log_file) {
-        log_errno("error with fopen (unable to open log file)");
+        fprintf(stderr, "error with fopen (unable to open log file)\n");
         return EXIT_FAILURE;
     }
 
