@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "events.h"
+#include "array.h"
 
 #define NUM_THREADS sysconf(_SC_NPROCESSORS_ONLN)
 
@@ -62,7 +63,7 @@ void* wait_events(void* _arg);
 /**
  * Start the execution of the node.
  */
-int start_node(int srv_port, char* srv_ip, int broadcast_port, char* broadcast_ip, char* srv_name, char* share_dir);
+int start_node(int srv_port, char* srv_ip, int broadcast_port, char* broadcast_ip, char* srv_name, char* share_dir, Array dirs);
 
 
 

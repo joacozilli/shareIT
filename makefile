@@ -24,6 +24,7 @@ SRC = \
 	src/events.c \
 	src/server.c \
 	src/files.c \
+	src/directories.c \
 	src/cli.c \
 	src/cJSON.c \
 	main.c

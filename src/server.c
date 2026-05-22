@@ -20,6 +20,7 @@
 #include "peer.h"
 #include "avl_concurrent.h"
 #include "files.h"
+#include "directories.h"
 #include "cli.h"
 
 
@@ -196,7 +197,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
             return ret;
         }
 
-        else if (array_size(arr) == 1 && !strcoll(array_idx(arr, 0), PEEK_REQUEST_MSG)) {
+        else if (array_size(arr) == 1 && !strcmp(array_idx(arr, 0), PEEK_REQUEST_MSG)) {
             log_info("peek request received");
             handler_status_t ret = see_files_request(fd, srv_info->files);
             array_destroy(arr);
@@ -277,7 +278,7 @@ void* wait_events(void* _arg) {
     return NULL;
 }
 
-int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, char* srv_name, char* share_dir) {
+int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, char* srv_name, char* share_dir, Array dirs) {
     int srvSocket = create_tcp_listener_socket(srv_port, ip, 1000);
     int udpSocket = create_broadcast_udp_socket(broadcast_port, NULL);
 
@@ -295,12 +296,14 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
 
     srv_info->peers = concurrent_avl_create(peer_copy, peer_compare, peer_delete, peer_print);
 
-    srv_info->files = get_files(share_dir);
-    if (!srv_info->files) {
-        log_error("unable to get shared files");
-        return -1;
-    }
+    // srv_info->files = get_files(share_dir);
+    // if (!srv_info->files) {
+    //     log_error("unable to get shared files");
+    //     return -1;
+    // }
 
+    shared_files sf = get_shared_files(dirs);
+    srv_info->files = sf;
 
     char* hello_msg = malloc(sizeof(char) * 1024);
     snprintf(hello_msg, 1024, "HELLO %s %s %d", srv_info->srv_name, srv_info->srv_ip, srv_info->srv_port);

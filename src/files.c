@@ -36,7 +36,7 @@ void file_info_delete(void* f) {
 
 void file_info_print(void* f) {
     file_info ff = (file_info) f;
-    printf("file name: %s | file path: %s | file size: %lu bytes\n", ff->name,ff->path,ff->size);
+    printf("file name: %s | file size: %lu bytes\n", ff->name,ff->size);
 }
 
 
