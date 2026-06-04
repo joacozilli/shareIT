@@ -265,9 +265,9 @@ int create_update_shared_files_timeout(int epfd) {
     }
 
     struct itimerspec tv;
-    tv.it_interval.tv_sec = UPDATE_SHARED_FILES_TIMEOUT_SEC
+    tv.it_interval.tv_sec = UPDATE_SHARED_FILES_TIMEOUT_SEC;
     tv.it_interval.tv_nsec = 0;
-    tv.it_value.tv_sec = UPDATE_SHARED_FILES_TIMEOUT_SEC
+    tv.it_value.tv_sec = UPDATE_SHARED_FILES_TIMEOUT_SEC;
     tv.it_value.tv_nsec = 0;
 
     if (timerfd_settime(update_sf_fd, 0, &tv, NULL) < 0) {
