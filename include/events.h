@@ -4,10 +4,10 @@
 #include <stdint.h>
 #include "avl_concurrent.h"
 
-#define EPOLL_WAIT_MAX_EVENTS 1000      // max events returned by epoll_wait
-#define SEND_HELLO_TIMEOUT_SEC 2        // timeout for broadcasting hello message
-#define CLEANUP_TIMEOUT_SEC 2           // timeout for removing tolerance of all peers
-#define UPDATE_SHARED_FILES_TIMEOUT_SEC // timeour for scanning shared files and update detected changes
+#define EPOLL_WAIT_MAX_EVENTS 1000          // max events returned by epoll_wait
+#define SEND_HELLO_TIMEOUT_SEC 2            // timeout for broadcasting hello message
+#define CLEANUP_TIMEOUT_SEC 2               // timeout for removing tolerance of all peers
+#define UPDATE_SHARED_FILES_TIMEOUT_SEC 5   // timeour for scanning shared files and update detected changes
 
 #define MAX_TOLERANCE 3
 
