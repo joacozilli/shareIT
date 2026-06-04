@@ -4,9 +4,10 @@
 #include <stdint.h>
 #include "avl_concurrent.h"
 
-#define EPOLL_WAIT_MAX_EVENTS 1000  // max events returned by epoll_wait
-#define SEND_HELLO_TIMEOUT_SEC 2    // timeout for broadcasting hello message
-#define CLEANUP_TIMEOUT_SEC 2       // timeout for removing tolerance of all peers
+#define EPOLL_WAIT_MAX_EVENTS 1000      // max events returned by epoll_wait
+#define SEND_HELLO_TIMEOUT_SEC 2        // timeout for broadcasting hello message
+#define CLEANUP_TIMEOUT_SEC 2           // timeout for removing tolerance of all peers
+#define UPDATE_SHARED_FILES_TIMEOUT_SEC // timeour for scanning shared files and update detected changes
 
 #define MAX_TOLERANCE 3
 
@@ -30,7 +31,8 @@ typedef enum {
     SOCKET_UDP,
     FILE_TRANSFER,
     SEND_HELLO_TIMEOUT,
-    CLEANUP_TIMEOUT
+    CLEANUP_TIMEOUT,
+    UPDATE_SHARED_FILES_TIMEOUT
 } fd_type;
 
 
@@ -106,5 +108,11 @@ int create_hello_timeout(int epfd);
  * Return 0 on success, otherwise -1 and inform error.
  */
 int create_cleanup_timeout(int epfd);
+
+/**
+ * Create file descriptor for update shared files timeout with timerfd_create and add it to the epoll instance.
+ * Return 0 on success, otherwise -1 and inform error.
+ */
+int create_update_shared_files_timeout(int epfd);
 
 #endif /* __EVENTS_H__ */

@@ -200,6 +200,7 @@ int create_hello_timeout(int epfd) {
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, hellofd, &helloEvent) < 0) {
         log_errno("error in epoll_ctl");
         close(hellofd);
+        free(hello->fd_data);
         free(hello);
         return -1;
     }
@@ -243,8 +244,52 @@ int create_cleanup_timeout(int epfd) {
     if (epoll_ctl(epfd, EPOLL_CTL_ADD, cleanupfd, &cleanupEvent) < 0) {
         log_errno("error in epoll_ctl");
         close(cleanupfd);
+        free(cleanup->fd_data);
         free(cleanup);
         return -1;
+    }
+
+    return 0;
+}
+
+int create_update_shared_files_timeout(int epfd) {
+    if (epfd < 0) {
+        log_error("file descriptor %d is non-positive", epfd);
+        return -1;
+    }
+
+    int update_sf_fd = timerfd_create(CLOCK_MONOTONIC, 0);
+    if (update_sf_fd < 0) {
+        log_errno("error in timerfd_create");
+        return -1;
+    }
+
+    struct itimerspec tv;
+    tv.it_interval.tv_sec = UPDATE_SHARED_FILES_TIMEOUT_SEC
+    tv.it_interval.tv_nsec = 0;
+    tv.it_value.tv_sec = UPDATE_SHARED_FILES_TIMEOUT_SEC
+    tv.it_value.tv_nsec = 0;
+
+    if (timerfd_settime(update_sf_fd, 0, &tv, NULL) < 0) {
+        log_errno("error in timerfd_settime");
+        close(update_sf_fd);
+        return -1;
+    }
+
+    fd_info update_sf = malloc(sizeof (struct _fd_info));
+    update_sf->fd_data = malloc(sizeof(union _fd_data));
+    update_sf->fd_data->integer = update_sf_fd;
+    update_sf->type = UPDATE_SHARED_FILES_TIMEOUT;
+
+    struct epoll_event updateEvent;
+    updateEvent.data.ptr = update_sf;
+    updateEvent.events = EPOLLIN | EPOLLONESHOT;
+
+    if (epoll_ctl(epfd, EPOLL_CTL_ADD, update_sf_fd, &updateEvent) < 0) {
+        log_errno("error in epoll_ctl");
+        close(update_sf_fd);
+        free(update_sf->fd_data);
+        free(update_sf);
     }
 
     return 0;
