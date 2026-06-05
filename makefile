@@ -22,7 +22,9 @@ SRC = \
 	src/peer.c \
 	src/network.c \
 	src/events.c \
-	src/server.c \
+	src/server/server.c \
+	src/server/downloads.c \
+	src/server/peeks.c \
 	src/files.c \
 	src/directories.c \
 	src/cli.c \
