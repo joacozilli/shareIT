@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "avl_concurrent.h"
+#include "directories.h"
 
 #define EPOLL_WAIT_MAX_EVENTS 1000          // max events returned by epoll_wait
 #define SEND_HELLO_TIMEOUT_SEC 2            // timeout for broadcasting hello message
@@ -74,7 +75,7 @@ struct _server_info {
     int broadcast_port;
     char* hello_msg;
     conc_AVL peers;
-    conc_AVL files;
+    shared_files files;
 };
 
 typedef struct _server_info* server_info;
