@@ -5,7 +5,7 @@
 #include <pwd.h>
 
 #include "log.h"
-#include "server.h"
+#include "server/server.h"
 #include "cJSON.h"
 #include "directories.h"
 #include "array.h"
@@ -122,7 +122,7 @@ int main() {
 
     cJSON_Delete(json);
 
-    start_node(srv_port, srv_ip, broadcast_port, broadcast_ip, srv_name, "./share", shared_dirs);
+    start_node(srv_port, srv_ip, broadcast_port, broadcast_ip, srv_name, shared_dirs);
     
     return 0;
 }

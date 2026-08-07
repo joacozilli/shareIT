@@ -20,7 +20,7 @@ echo "[INFO] Adding binary to $EXEC_TARGET_DIR..."
 install -vd $EXEC_TARGET_DIR
 install -vm 755 shareit $EXEC_TARGET_DIR
 
-echo "[INFO] .shareit folder..."
+echo "[INFO] Creating .shareit folder in $SHAREIT_DIR..."
 
 install -vd $SHAREIT_DIR
 install -vd $SHAREIT_DIR/$CONFIG_DIR_NAME
@@ -32,12 +32,8 @@ install -vd $SHAREIT_DIR/$LOG_DIR_NAME
 
 echo "[INFO] installation completed."
 
-
-
-
 if ! echo ":$PATH:" | grep -q ":$EXEC_TARGET_DIR:" ; then
     echo "[WARNING] $EXEC_TARGET_DIR is not in PATH."
 fi
-
 
 echo "run the cli by typing shareit in your terminal."
