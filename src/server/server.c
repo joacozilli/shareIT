@@ -94,7 +94,7 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
             return CLIENT_CONTINUE_CONNECTION;
         
         
-        if (array_size(arr) == 2 && !strcmp(array_idx(arr, 0), "DOWNLOAD_REQUEST")) {
+        if (array_size(arr) == 2 && !strcmp(array_idx(arr, 0), DOWNLOAD_REQUEST_MSG)) {
             log_info("download request received");
             handler_status_t ret = download_request(fd, srv_info->files, array_idx(arr,1));
             array_destroy(arr);
@@ -170,6 +170,15 @@ handler_status_t main_handler(fd_info fd, uint32_t events , server_info srv_info
         return TIMEOUT_OR_BROADCAST;   
         break;
 
+    case UPDATE_SHARED_FILES_TIMEOUT:
+    if (read(fd->fd_data->integer, (void*) &buff, sizeof buff) < 0) {
+        log_errno("error in read");
+        return ERROR;
+    }
+        update_shared_files(srv_info->files);
+        return TIMEOUT_OR_BROADCAST;
+        break;
+    
     default:
         break;
     }
@@ -218,6 +227,12 @@ int start_node(int srv_port, char* ip, int broadcast_port, char* broadcast_ip, c
     ret = create_cleanup_timeout(epfd);
     if (ret < 0) {
         log_error("unable to create cleanup timeout");
+        return -1;
+    }
+
+    ret = create_update_shared_files_timeout(epfd);
+    if (ret < 0) {
+        log_error("unable to create update shared files timeout");
         return -1;
     }
 

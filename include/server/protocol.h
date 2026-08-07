@@ -1,15 +1,14 @@
 #ifndef __PROTOCOL_H__
 #define __PROTOCOL_H__
 
-/**
- * All messages sent via tcp that are not part of the protocol start with a header of this length
- * where the length of the actual message is stored. That way the receiver knows how much to read.
- */
+
 #define HEADER_LENGTH 2
 
 // if header stores this value, the receiver knows the request has been completed.
 #define END_OF_REQUEST 0xffff
 
+
+#define DOWNLOAD_REQUEST_MSG "DOWNLOAD_REQUEST"
 
 #define PEEK_REQUEST_MSG "PEEK_REQUEST"
 
