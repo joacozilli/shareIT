@@ -131,10 +131,57 @@ shared_files get_shared_files(Array dirs) {
                                             directory_delete, directory_print);
 
     array_map(dirs, read_directory, &context);
-    pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-    sf->mutex = mutex;
     sf->directories = context.parent_directory_subdirs;
-    avl_print(sf->directories);
+    sf->readers_counter = 0;
+
+    sf->dirs_paths = dirs;
+
+    pthread_mutex_t readers_counter_mutex = PTHREAD_MUTEX_INITIALIZER;
+    sf->readers_counter_mutex = readers_counter_mutex;
+
+    pthread_cond_t no_readers = PTHREAD_COND_INITIALIZER;
+    sf->no_readers = no_readers;
+
+    sf->writer_flag = 0;
+
+    pthread_mutex_t writer_flag_mutex = PTHREAD_MUTEX_INITIALIZER;
+    sf->writer_flag_mutex = writer_flag_mutex;
+
+    pthread_cond_t no_writer = PTHREAD_COND_INITIALIZER;
+    sf->no_writer = no_writer;
+
     return sf;
 }
 
+
+
+
+void update_shared_files(shared_files sf) {
+
+    // writer's lock
+    pthread_mutex_lock(&sf->writer_flag_mutex);
+    sf->writer_flag = 1;
+    pthread_mutex_unlock(&sf->writer_flag_mutex);
+
+    pthread_mutex_lock(&sf->readers_counter_mutex);
+    while (sf->readers_counter > 0)
+        pthread_cond_wait(&sf->no_readers, &sf->readers_counter_mutex);
+    pthread_mutex_unlock(&sf->readers_counter_mutex);
+
+    
+    avl_destroy(sf->directories);
+    struct _read_directory_context context;
+    context.parent_directory_subdirs = avl_create(directory_id, directory_compare,
+                                            directory_delete, directory_print);
+
+    array_map(sf->dirs_paths, read_directory, &context);
+    sf->directories = context.parent_directory_subdirs;
+
+    // writer's unlock
+    pthread_mutex_lock(&sf->writer_flag_mutex);
+    sf->writer_flag = 0;
+    pthread_cond_broadcast(&sf->no_writer);
+    pthread_mutex_unlock(&sf->writer_flag_mutex);
+
+    return;
+}
